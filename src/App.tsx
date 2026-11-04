@@ -29,8 +29,83 @@ import { UserBackgroundLayer } from './components/UserBackgroundLayer';
 import { QrModal } from './components/QrModal';
 import { saveDriverContact } from './utils/vcard';
 
-const BG_STORAGE_KEY = 'green_sm_bg_settings_v2';
-const AVATAR_STORAGE_KEY = 'green_sm_avatar_settings_v1';
+const BG_STORAGE_KEY = 'green_sm_bg_settings_v4';
+const AVATAR_STORAGE_KEY = 'green_sm_avatar_settings_v4';
+
+const LEGACY_STORAGE_KEYS = [
+  'green_sm_bg_settings',
+  'green_sm_bg_settings_v1',
+  'green_sm_bg_settings_v2',
+  'green_sm_bg_settings_v3',
+  'green_sm_avatar_settings',
+  'green_sm_avatar_settings_v1',
+  'green_sm_avatar_settings_v2',
+  'green_sm_avatar_settings_v3',
+];
+
+// Helper to sanitize any stored background settings and ensure permanent defaults are never wiped out
+function sanitizeBackgroundSettings(raw: any): BackgroundSettings {
+  if (!raw || typeof raw !== 'object') return DEFAULT_BG_SETTINGS;
+  const imageUrl = (typeof raw.imageUrl === 'string' && raw.imageUrl.trim() !== '' && raw.imageUrl !== 'null' && raw.imageUrl !== 'undefined' && !raw.imageUrl.startsWith('blob:'))
+    ? raw.imageUrl
+    : DEFAULT_BG_SETTINGS.imageUrl;
+  const opacity = typeof raw.opacity === 'number' && !isNaN(raw.opacity)
+    ? Math.max(10, Math.min(100, raw.opacity))
+    : DEFAULT_BG_SETTINGS.opacity;
+  const position = typeof raw.position === 'string' && raw.position.trim() !== ''
+    ? raw.position
+    : DEFAULT_BG_SETTINGS.position;
+  const size = (raw.size === 'contain' || raw.size === 'cover' || raw.size === 'custom')
+    ? raw.size
+    : DEFAULT_BG_SETTINGS.size;
+  const scale = typeof raw.scale === 'number' && !isNaN(raw.scale)
+    ? Math.max(30, Math.min(200, raw.scale))
+    : DEFAULT_BG_SETTINGS.scale;
+  const repeat = typeof raw.repeat === 'boolean'
+    ? raw.repeat
+    : DEFAULT_BG_SETTINGS.repeat;
+  const overlayColor = typeof raw.overlayColor === 'string'
+    ? raw.overlayColor
+    : DEFAULT_BG_SETTINGS.overlayColor;
+  const overlayOpacity = typeof raw.overlayOpacity === 'number' && !isNaN(raw.overlayOpacity)
+    ? Math.max(0, Math.min(100, raw.overlayOpacity))
+    : DEFAULT_BG_SETTINGS.overlayOpacity;
+  return {
+    ...DEFAULT_BG_SETTINGS,
+    ...raw,
+    imageUrl,
+    opacity,
+    position,
+    size,
+    scale,
+    repeat,
+    overlayColor,
+    overlayOpacity,
+  };
+}
+
+// Helper to sanitize any stored avatar settings
+function sanitizeAvatarSettings(raw: any): AvatarSettings {
+  if (!raw || typeof raw !== 'object') return DEFAULT_AVATAR_SETTINGS;
+  const photoUrl = (typeof raw.photoUrl === 'string' && raw.photoUrl.trim() !== '' && raw.photoUrl !== 'null' && raw.photoUrl !== 'undefined' && !raw.photoUrl.startsWith('blob:'))
+    ? raw.photoUrl
+    : DEFAULT_AVATAR_SETTINGS.photoUrl;
+  const zoom = typeof raw.zoom === 'number' && !isNaN(raw.zoom)
+    ? Math.max(50, Math.min(200, raw.zoom))
+    : DEFAULT_AVATAR_SETTINGS.zoom;
+  const positionY = typeof raw.positionY === 'number' && !isNaN(raw.positionY)
+    ? Math.max(0, Math.min(100, raw.positionY))
+    : DEFAULT_AVATAR_SETTINGS.positionY;
+  const positionX = typeof raw.positionX === 'number' && !isNaN(raw.positionX)
+    ? Math.max(0, Math.min(100, raw.positionX))
+    : DEFAULT_AVATAR_SETTINGS.positionX;
+  return {
+    photoUrl,
+    zoom,
+    positionY,
+    positionX,
+  };
+}
 
 // Nomor WhatsApp resmi driver Wahyu Eka B.T. & template pesan pemesanan taksi
 const WA_PHONE = '6282233697979';
@@ -42,6 +117,17 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [settingsActiveTab, setSettingsActiveTab] = useState<'background' | 'avatar'>('background');
+
+  // Purge legacy obsolete localStorage keys on initial mount
+  React.useEffect(() => {
+    try {
+      LEGACY_STORAGE_KEYS.forEach((key) => {
+        localStorage.removeItem(key);
+      });
+    } catch {
+      // Ignore in restricted environments
+    }
+  }, []);
 
   // Secret Click Easter Egg (sembunyi di footer, 10-13x buka pengaturan, 14x kembali ke semula)
   const [secretClickCount, setSecretClickCount] = useState(0);
@@ -92,11 +178,7 @@ export default function App() {
       const saved = localStorage.getItem(BG_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return {
-          ...DEFAULT_BG_SETTINGS,
-          ...parsed,
-          imageUrl: parsed.imageUrl || DEFAULT_BG_SETTINGS.imageUrl,
-        };
+        return sanitizeBackgroundSettings(parsed);
       }
     } catch {
       // Fallback
@@ -110,11 +192,7 @@ export default function App() {
       const saved = localStorage.getItem(AVATAR_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return {
-          ...DEFAULT_AVATAR_SETTINGS,
-          ...parsed,
-          photoUrl: parsed.photoUrl || DEFAULT_AVATAR_SETTINGS.photoUrl,
-        };
+        return sanitizeAvatarSettings(parsed);
       }
     } catch {
       // Fallback
@@ -123,9 +201,10 @@ export default function App() {
   });
 
   const handleUpdateBgSettings = (newSettings: BackgroundSettings) => {
-    setBgSettings(newSettings);
+    const sanitized = sanitizeBackgroundSettings(newSettings);
+    setBgSettings(sanitized);
     try {
-      localStorage.setItem(BG_STORAGE_KEY, JSON.stringify(newSettings));
+      localStorage.setItem(BG_STORAGE_KEY, JSON.stringify(sanitized));
     } catch {
       // Ignore quota
     }
@@ -138,14 +217,15 @@ export default function App() {
     } catch {
       //
     }
-    setToastMessage('Background berhasil direset.');
+    setToastMessage('Background berhasil direset ke default permanen.');
     setTimeout(() => setToastMessage(null), 3000);
   };
 
   const handleUpdateAvatarSettings = (newSettings: AvatarSettings) => {
-    setAvatarSettings(newSettings);
+    const sanitized = sanitizeAvatarSettings(newSettings);
+    setAvatarSettings(sanitized);
     try {
-      localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify(newSettings));
+      localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify(sanitized));
     } catch {
       // Ignore quota
     }

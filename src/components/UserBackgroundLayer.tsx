@@ -15,26 +15,43 @@ interface UserBackgroundLayerProps {
  * Menjamin parent section TIDAK diberi opacity sehingga konten tetap 100% jelas & terbaca.
  */
 export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({ settings }) => {
-  const imageUrl = settings.imageUrl || PERMANENT_DEFAULT_BG_IMAGE;
+  const rawUrl = settings.imageUrl;
+  const safeImageUrl =
+    typeof rawUrl === 'string' &&
+    rawUrl.trim() !== '' &&
+    rawUrl !== 'null' &&
+    rawUrl !== 'undefined' &&
+    !rawUrl.startsWith('blob:')
+      ? rawUrl
+      : PERMANENT_DEFAULT_BG_IMAGE;
+
+  // Ensure safe opacity so the watermark is never completely invisible (0) or NaN
+  const safeOpacity =
+    Math.max(10, Math.min(100, typeof settings.opacity === 'number' && !isNaN(settings.opacity) ? settings.opacity : 35)) / 100;
+
+  const safePosition =
+    typeof settings.position === 'string' && settings.position.trim() !== ''
+      ? settings.position
+      : 'center';
 
   // Calculate background-size style
   const backgroundSizeStyle =
-    settings.size === 'custom' ? `${settings.scale}%` : settings.size;
+    settings.size === 'custom' ? `${settings.scale}%` : settings.size || 'cover';
 
   return (
     <div
       className="absolute inset-0 pointer-events-none select-none overflow-hidden z-[2]"
       aria-hidden="true"
     >
-      {/* Layer 2A: The User-Uploaded Image */}
+      {/* Layer 2A: The User-Uploaded / Permanent Watermark Image */}
       <div
         className="w-full h-full transition-opacity duration-150 ease-out"
         style={{
-          backgroundImage: `url(${imageUrl})`,
-          backgroundPosition: settings.position,
+          backgroundImage: `url("${safeImageUrl}")`,
+          backgroundPosition: safePosition,
           backgroundSize: backgroundSizeStyle,
           backgroundRepeat: settings.repeat ? 'repeat' : 'no-repeat',
-          opacity: settings.opacity / 100,
+          opacity: safeOpacity,
         }}
       />
 

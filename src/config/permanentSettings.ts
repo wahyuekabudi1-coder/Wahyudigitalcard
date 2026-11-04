@@ -42,16 +42,16 @@ export interface PermanentAppConfig {
 }
 
 export const PERMANENT_DEFAULT_CONFIG: PermanentAppConfig = {
-  version: '2.0.0',
+  version: '2.1.0',
   avatar: {
-    photoUrl: '/assets/driver-profile.jpg',
+    photoUrl: '/assets/driver-profile.jpg?v=2',
     zoom: 100,
     positionX: 50,
     positionY: 50,
   },
   background: {
-    imageUrl: '/assets/driver-background.jpg',
-    opacity: 22,
+    imageUrl: '/assets/driver-background.jpg?v=2',
+    opacity: 35,
     position: 'center',
     size: 'cover',
     scale: 100,

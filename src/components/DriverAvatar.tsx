@@ -36,7 +36,27 @@ export const DriverAvatar: React.FC<DriverAvatarProps> = ({
   avatarSettings = DEFAULT_AVATAR_SETTINGS,
   onEditClick,
 }) => {
-  const photoSrc = avatarSettings.photoUrl || PERMANENT_DEFAULT_AVATAR_PHOTO;
+  // Validate photo URL to prevent blank display or broken blob loops
+  const safePhotoSrc = React.useMemo(() => {
+    const url = avatarSettings?.photoUrl;
+    if (!url || typeof url !== 'string' || url === 'null' || url === 'undefined' || url.trim() === '') {
+      return PERMANENT_DEFAULT_AVATAR_PHOTO;
+    }
+    if (url.startsWith('blob:')) {
+      return PERMANENT_DEFAULT_AVATAR_PHOTO;
+    }
+    return url;
+  }, [avatarSettings?.photoUrl]);
+
+  const safeZoom = typeof avatarSettings?.zoom === 'number' && !isNaN(avatarSettings.zoom)
+    ? avatarSettings.zoom
+    : PERMANENT_DEFAULT_CONFIG.avatar.zoom;
+  const safePositionX = typeof avatarSettings?.positionX === 'number' && !isNaN(avatarSettings.positionX)
+    ? avatarSettings.positionX
+    : PERMANENT_DEFAULT_CONFIG.avatar.positionX;
+  const safePositionY = typeof avatarSettings?.positionY === 'number' && !isNaN(avatarSettings.positionY)
+    ? avatarSettings.positionY
+    : PERMANENT_DEFAULT_CONFIG.avatar.positionY;
 
   return (
     <div className={`relative flex items-center justify-center select-none ${className}`}>
@@ -81,19 +101,18 @@ export const DriverAvatar: React.FC<DriverAvatarProps> = ({
 
           {/* Real Driver Photo (Always displays photo image, no cartoon fallback) */}
           <img
-            src={photoSrc}
+            src={safePhotoSrc}
             alt="Foto Profil Driver Wahyu Eka B.T."
             className="w-full h-full object-cover relative z-10 transition-transform duration-200"
             style={{
-              transform: `scale(${avatarSettings.zoom / 100})`,
-              objectPosition: `${avatarSettings.positionX}% ${avatarSettings.positionY}%`,
+              transform: `scale(${safeZoom / 100})`,
+              objectPosition: `${safePositionX}% ${safePositionY}%`,
             }}
             onError={(e) => {
-              // Fallback to permanent default if custom path fails
+              // Fallback to permanent default if custom path fails, with onerror = null to avoid infinite loop
               const target = e.currentTarget as HTMLImageElement;
-              if (target.src !== PERMANENT_DEFAULT_AVATAR_PHOTO) {
-                target.src = PERMANENT_DEFAULT_AVATAR_PHOTO;
-              }
+              target.onerror = null;
+              target.src = PERMANENT_DEFAULT_AVATAR_PHOTO;
             }}
           />
 
