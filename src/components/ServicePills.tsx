@@ -1,10 +1,10 @@
 import React from 'react';
-import { Leaf, Zap, ShieldCheck } from 'lucide-react';
+import { Zap, Leaf, ShieldCheck } from 'lucide-react';
 
 /**
  * ServicePills
  *
- * Tiga identitas layanan:
+ * Tiga identitas layanan resmi Green SM:
  * 1. Zero Emission
  * 2. Eco Friendly
  * 3. Safe & Comfort
@@ -13,24 +13,21 @@ export const ServicePills: React.FC<{ className?: string }> = ({ className = '' 
   const services = [
     {
       title: 'Zero Emission',
-      icon: Leaf,
+      icon: Zap,
       iconColor: 'text-[#00A3A6]',
-      bgGrad: 'from-emerald-50 to-teal-50/70',
       borderColor: 'border-teal-200/80',
     },
     {
       title: 'Eco Friendly',
-      icon: Zap,
-      iconColor: 'text-[#E69500]',
-      bgGrad: 'from-amber-50 to-yellow-50/70',
-      borderColor: 'border-amber-200/80',
+      icon: Leaf,
+      iconColor: 'text-emerald-600',
+      borderColor: 'border-emerald-200/80',
     },
     {
       title: 'Safe & Comfort',
       icon: ShieldCheck,
-      iconColor: 'text-[#008E91]',
-      bgGrad: 'from-cyan-50 to-teal-50/70',
-      borderColor: 'border-cyan-200/80',
+      iconColor: 'text-[#008A8D]',
+      borderColor: 'border-teal-200/80',
     },
   ];
 
@@ -41,12 +38,10 @@ export const ServicePills: React.FC<{ className?: string }> = ({ className = '' 
         return (
           <div
             key={index}
-            className={`flex flex-col items-center justify-center p-2 rounded-xl bg-gradient-to-b ${item.bgGrad} border ${item.borderColor} shadow-xs transition-transform hover:-translate-y-0.5`}
+            className={`flex items-center justify-center gap-1.5 py-2 px-1.5 rounded-xl bg-white/95 border ${item.borderColor} shadow-xs text-center transition-all duration-200`}
           >
-            <div className="w-6 h-6 rounded-full bg-white/90 flex items-center justify-center shadow-2xs mb-1">
-              <IconComponent className={`w-3.5 h-3.5 ${item.iconColor}`} />
-            </div>
-            <span className="text-[10.5px] font-bold text-[#0A3D3E] text-center leading-tight whitespace-nowrap">
+            <IconComponent className={`w-3.5 h-3.5 ${item.iconColor} shrink-0`} />
+            <span className="text-[11px] font-bold text-[#005254] leading-tight">
               {item.title}
             </span>
           </div>

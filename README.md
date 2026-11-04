@@ -18,14 +18,13 @@ Landing page profil digital *mobile-first* portrait premium yang dirancang khusu
 
 - **Identitas Visual Resmi Green SM**:
   - Logo asli **GREEN SM Electric Taxi** (Turquoise `#00B5B8` & Kuning `#FFC800`).
-  - Foto driver lingkaran dengan watermark Green SM dan ring kuning keemasan.
+  - **Foto Profil Driver Berukuran Besar & Kustom**: Foto driver lingkaran lebih besar dan tegas (192px - 208px) dengan ring kuning keemasan dan watermark Green SM. Mendukung **upload foto sendiri secara manual** (PNG, JPG, WebP) dengan tombol kamera cepat, slider zoom (skala), dan pengatur posisi wajah vertikal, atau kembali ke ilustrasi default Wahyu Eka B.T.
   - Nama resmi: **Wahyu Eka B.T.**
   - Badge identitas: **Driver Green SM**.
-  - Label lokasi: **Surabaya, Jawa Timur**.
-- **Bagian WhatsApp Interaktif**:
-  - Nomor telepon resmi `0822 3369 7979` dapat langsung diklik menuju `https://wa.me/6282233697979`.
-- **Tombol SAVE CONTACT**:
-  - Menghasilkan dan mengunduh file kontak virtual standar RFC `.VCF` (vCard 3.0) berisi nama lengkap, nomor telepon, organisasi Green SM, dan alamat website.
+- **Bagian WhatsApp Resmi**:
+  - Tombol WhatsApp proporsional dan profesional dengan nomor telepon berukuran besar `0822 3369 7979` yang langsung membuka percakapan ke `https://wa.me/6282233697979`.
+- **Tombol SIMPAN KONTAK (Langsung ke Panggilan HP)**:
+  - Mengarahkan langsung ke aplikasi panggilan telepon (`tel:+6282233697979`) pada setiap merk smartphone pengguna (iPhone, Samsung, Xiaomi, Oppo, Vivo, dll.) sehingga nomor langsung muncul di dialer dan siap ditekan tombol "Simpan ke Kontak Baru" tanpa proses mengunduh file apapun.
 - **Tombol VISIT MY WEBSITE**:
   - Tautan langsung ke `https://smartjourney.id` dengan atribut keamanan `target="_blank" rel="noopener noreferrer"`.
 - **Sistem Background 3-Layer & Watermark Custom**:
