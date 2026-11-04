@@ -12,33 +12,33 @@
 
 ## 📋 Ringkasan Proyek
 
-Landing page profil digital *mobile-first* portrait premium yang dirancang khusus untuk driver taksi listrik Green SM, dapat diakses langsung oleh penumpang melalui **NFC Smart Card** dan **Scan QR Code**.
+Landing page profil digital *mobile-first* portrait premium yang dirancang khusus untuk driver taksi listrik Green SM, dapat diakses langsung oleh penumpang melalui **NFC Smart Card** dan **Scan QR Code Kamera HP**.
 
-### 🌟 Fitur Utama
+### 🌟 Fitur Utama & Konfigurasi Default Permanen
 
-- **Identitas Visual Resmi Green SM**:
-  - Logo asli **GREEN SM Electric Taxi** (Turquoise `#00B5B8` & Kuning `#FFC800`).
-  - **Foto Profil Driver Berukuran Besar & Kustom**: Foto driver lingkaran lebih besar dan tegas (192px - 208px) dengan ring kuning keemasan dan watermark Green SM. Mendukung **upload foto sendiri secara manual** (PNG, JPG, WebP) dengan tombol kamera cepat, slider zoom (skala), dan pengatur posisi wajah vertikal, atau kembali ke ilustrasi default Wahyu Eka B.T.
-  - Nama resmi: **Wahyu Eka B.T.**
-  - Badge identitas: **Driver Green SM**.
-- **Bagian WhatsApp Resmi**:
-  - Tombol WhatsApp proporsional dan profesional dengan nomor telepon berukuran besar `0822 3369 7979` yang langsung membuka percakapan ke `https://wa.me/6282233697979`.
-- **Tombol SIMPAN KONTAK (Langsung ke Panggilan HP)**:
-  - Mengarahkan langsung ke aplikasi panggilan telepon (`tel:+6282233697979`) pada setiap merk smartphone pengguna (iPhone, Samsung, Xiaomi, Oppo, Vivo, dll.) sehingga nomor langsung muncul di dialer dan siap ditekan tombol "Simpan ke Kontak Baru" tanpa proses mengunduh file apapun.
-- **Tombol VISIT MY WEBSITE**:
-  - Tautan langsung ke `https://smartjourney.id` dengan atribut keamanan `target="_blank" rel="noopener noreferrer"`.
-- **Sistem Background 3-Layer & Watermark Custom**:
-  - **Layer 1**: Base gradasi putih-turquoise & ornamen lengkung Green SM.
-  - **Layer 2**: Background watermark gambar hasil upload (didukung pengaturan opacity independen, posisi, ukuran *cover/contain/zoom*, dan overlay warna).
-  - **Layer 3**: Seluruh konten kartu profil ber-kontras tinggi tanpa terpengaruh transparansi background.
-- **Ilustrasi Mobil Listrik Green SM**:
-  - Ilustrasi vektor mobil listrik crossover Green SM lengkap dengan livery, roof light sign, dan siluet cakrawala Kota Surabaya (Tugu Pahlawan & Suramadu).
-- **Tiga Identitas Layanan**:
-  - 🌿 *Zero Emission*
-  - ⚡ *Eco Friendly*
-  - 🛡️ *Safe & Comfort*
-- **Modal QR Code & NFC Ready**:
-  - Mendukung pembagian tautan instan melalui QR scanner atau NFC tap.
+1. **Identitas Visual Resmi Green SM**:
+   - Logo asli **GREEN SM Electric Taxi** (format PNG transparan tanpa background box putih).
+   - **Foto Profil Driver Default Permanen**: Tersimpan di `public/assets/driver-wahyu-default.jpg` berbingkai lingkaran emas (#FFC800) dan watermark diagonal Green SM (tanpa ilustrasi kartun).
+   - Nama resmi: **Wahyu Eka B.T.**
+   - Badge identitas: **Driver Green SM**.
+2. **WhatsApp Resmi dengan Pesan Otomatis**:
+   - Nomor WhatsApp `0822 3369 7979` diposisikan simetris di tengah.
+   - Mengarahkan langsung ke WhatsApp dengan template pesan otomatis:
+     > *"Halo Wahyu, saya ingin pesan mobil listrik taksi Green SM."*
+3. **Tombol SIMPAN KONTAK (.VCF)**:
+   - Membagikan dan mengunduh file kontak vCard 3.0 resmi (`Wahyu_Eka_BT.vcf`) langsung ke buku telepon iPhone (Apple Contacts) dan Android (Google Contacts).
+4. **Tombol VISIT MY WEBSITE**:
+   - Tautan langsung ke `https://smartjourney.id` dengan atribut keamanan `target="_blank" rel="noopener noreferrer"`.
+5. **Banner Taksi Listrik Green SM**:
+   - Banner mobil listrik taksi Green SM seamless di bagian bawah card dengan blending transparan.
+6. **Open Graph Image Preview (WhatsApp / Media Sosial)**:
+   - File permanen di `public/og-driver-wahyu.jpg` (1200 × 630 piksel) berisi logo Green SM, foto driver, mobil listrik, WhatsApp, dan identitas Surabaya.
+7. **QR Code Standar Industri (Camera-Scannable)**:
+   - Dihasilkan langsung dari domain deployment produksi (`https://smartjourney.id`) menggunakan modul `qrcode` dengan level koreksi kesalahan tinggi (*High Error Correction*).
+8. **Sistem Pengaturan Rahasia (Secret Easter Egg)**:
+   - Tampilan publik 100% bersih tanpa tombol edit yang mengganggu.
+   - Mengetuk footer (*Green SM Taxi • Wahyu Eka BT • Surabaya*) sebanyak **10 – 13 kali** membuka modal pengaturan background dan foto profil.
+   - Keluar dari menu atau mengetuk ke-14 kali otomatis mengunci dan menyembunyikan semua kontrol kembali ke semula.
 
 ---
 
@@ -48,48 +48,28 @@ Landing page profil digital *mobile-first* portrait premium yang dirancang khusu
 - **Bundler**: Vite 8
 - **Styling**: Tailwind CSS v4
 - **Icons**: Lucide React
-- **Deploy Target**: Vercel / Cloudflare Pages / Netlify
+- **QR Engine**: qrcode
+- **Image Engine**: sharp
+- **Deploy Target**: Vercel / GitHub
 
 ---
 
-## 🚀 Panduan Memulai (Local Development)
+## 🚀 Panduan Deployment ke GitHub & Vercel
 
-### 1. Kloning Repository
+### 1. Push ke GitHub
 ```bash
-git clone https://github.com/USERNAME/green-sm-digital-profile.git
-cd green-sm-digital-profile
+git init
+git add .
+git commit -m "feat: finalize Green SM digital profile default configuration"
+git branch -M main
+git remote add origin https://github.com/USERNAME/green-sm-digital-profile.git
+git push -u origin main
 ```
 
-### 2. Install Dependensi
-```bash
-npm install
-```
-
-### 3. Jalankan Development Server
-```bash
-npm run dev
-```
-Akses di browser melalui `http://localhost:3000`.
-
-### 4. Build untuk Production
-```bash
-npm run build
-```
-File output hasil build akan berada di direktori `dist/`.
-
----
-
-## 🌐 Panduan Deployment ke Vercel
-
-Proyek ini telah dikonfigurasi secara optimal untuk Vercel:
-- **Framework Preset**: `Vite`
-- **Build Command**: `npm run build`
-- **Output Directory**: `dist`
-- **Install Command**: `npm install`
-- **Routing**: Konfigurasi `vercel.json` sudah tersedia untuk menjamin SPA routing berjalan tanpa error 404 saat di-refresh.
-
----
-
-## 📄 Lisensi
-
-© 2026 Wahyu Eka B.T. — Green SM Electric Taxi Surabaya.
+### 2. Deploy ke Vercel
+1. Buka [Vercel Dashboard](https://vercel.com/new).
+2. Import repository GitHub `green-sm-digital-profile`.
+3. Framework Preset: **Vite**.
+4. Build Command: `npm run build`.
+5. Output Directory: `dist`.
+6. Klik **Deploy**.

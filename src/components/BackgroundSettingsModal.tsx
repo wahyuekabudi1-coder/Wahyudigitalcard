@@ -13,6 +13,7 @@ import {
   ZoomIn,
   Move,
   Camera,
+  QrCode,
 } from 'lucide-react';
 import { AvatarSettings, DEFAULT_AVATAR_SETTINGS } from './DriverAvatar';
 
@@ -28,7 +29,7 @@ export interface BackgroundSettings {
 }
 
 export const DEFAULT_BG_SETTINGS: BackgroundSettings = {
-  imageUrl: '/assets/aistudio/images__9__b380b76a.jpeg',
+  imageUrl: null,
   opacity: 22,
   position: 'center',
   size: 'cover',
@@ -49,6 +50,7 @@ interface BackgroundSettingsModalProps {
   onUpdateAvatarSettings?: (newSettings: AvatarSettings) => void;
   onResetAvatar?: () => void;
   initialTab?: 'background' | 'avatar';
+  onOpenQr?: () => void;
 }
 
 export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = ({
@@ -61,6 +63,7 @@ export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = (
   onUpdateAvatarSettings,
   onResetAvatar,
   initialTab = 'background',
+  onOpenQr,
 }) => {
   const [activeTab, setActiveTab] = useState<'background' | 'avatar'>('background');
   
@@ -697,7 +700,7 @@ export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = (
         </div>
 
         {/* Modal Footer */}
-        <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+        <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
           {activeTab === 'avatar' ? (
             <button
               type="button"
@@ -705,7 +708,7 @@ export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = (
               className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 font-semibold transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset ke Default</span>
+              <span>Reset Default</span>
             </button>
           ) : (
             <button
@@ -714,17 +717,31 @@ export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = (
               className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 font-semibold transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Background</span>
+              <span>Reset Default</span>
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#00A3A6] to-[#00C2A8] text-white font-bold text-xs shadow-md hover:from-[#008F92] hover:to-[#00B098] transition-all cursor-pointer"
-          >
-            Selesai
-          </button>
+          <div className="flex items-center gap-2">
+            {onOpenQr && (
+              <button
+                type="button"
+                onClick={onOpenQr}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-[#007F82] border border-teal-200/80 font-bold text-xs transition-colors cursor-pointer"
+                title="Buka QR Code untuk Dashboard Mobil / Penumpang"
+              >
+                <QrCode className="w-3.5 h-3.5 text-[#00A3A6]" />
+                <span>QR Code</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#00A3A6] to-[#00C2A8] text-white font-bold text-xs shadow-md hover:from-[#008F92] hover:to-[#00B098] transition-all cursor-pointer"
+            >
+              Selesai
+            </button>
+          </div>
         </div>
       </div>
     </div>

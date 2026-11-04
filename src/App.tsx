@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import {
   Globe,
   PhoneCall,
+  UserPlus,
   CheckCircle2,
   ExternalLink,
 } from 'lucide-react';
@@ -25,6 +26,8 @@ import {
   DEFAULT_BG_SETTINGS,
 } from './components/BackgroundSettingsModal';
 import { UserBackgroundLayer } from './components/UserBackgroundLayer';
+import { QrModal } from './components/QrModal';
+import { saveDriverContact } from './utils/vcard';
 
 const BG_STORAGE_KEY = 'green_sm_bg_settings_v2';
 const AVATAR_STORAGE_KEY = 'green_sm_avatar_settings_v1';
@@ -37,6 +40,7 @@ const WA_URL = `https://wa.me/${WA_PHONE}?text=${encodeURIComponent(WA_PREFILLED
 export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isQrOpen, setIsQrOpen] = useState(false);
   const [settingsActiveTab, setSettingsActiveTab] = useState<'background' | 'avatar'>('background');
 
   // Secret Click Easter Egg (sembunyi di footer, 10-13x buka pengaturan, 14x kembali ke semula)
@@ -64,6 +68,22 @@ export default function App() {
   const handleCloseSettings = () => {
     setIsSettingsOpen(false);
     setSecretClickCount(0); // Seluruh tombol langsung hilang & kembali ke semula saat keluar dari menu
+  };
+
+  const handleOpenQrFromModal = () => {
+    setIsSettingsOpen(false);
+    setIsQrOpen(true);
+  };
+
+  const handleSaveContact = async () => {
+    try {
+      const result = await saveDriverContact();
+      setToastMessage(result.message);
+      setTimeout(() => setToastMessage(null), 3500);
+    } catch {
+      setToastMessage('Mengunduh file kontak Wahyu Eka B.T. (.vcf)...');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
   };
 
   // Background Settings State (Layer 2)
@@ -244,20 +264,21 @@ export default function App() {
           {/* TWO MAIN ACTION BUTTONS: SIMPAN KONTAK (PANGGILAN) & VISIT MY WEBSITE */}
           <div className="w-full flex flex-col gap-2.5 my-1">
             
-            {/* BUTTON A: SIMPAN KONTAK (LANGSUNG MEMBUKA PANGGILAN / PHONE DIALER UNTUK DISIMPAN DI HP) */}
-            <a
-              href="tel:+6282233697979"
-              aria-label="Simpan kontak ke panggilan telepon 0822 3369 7979"
+            {/* BUTTON A: SIMPAN KONTAK (MENGUNDUH / MEMBAGIKAN FILE KONTAK .VCF KE HP) */}
+            <button
+              type="button"
+              onClick={handleSaveContact}
+              aria-label="Simpan kontak Wahyu Eka B.T. format VCF ke HP"
               className="w-full relative group overflow-hidden flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#00A3A6] via-[#00B5B8] to-[#009699] text-white font-extrabold text-sm sm:text-[15px] shadow-lg shadow-teal-600/25 hover:shadow-teal-600/35 active:scale-[0.98] transition-all cursor-pointer"
             >
               {/* Shimmer sweep effect */}
               <span className="absolute inset-0 w-1/2 h-full bg-white/20 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-out pointer-events-none"></span>
 
-              <PhoneCall className="w-4 h-4 text-[#FFD000] drop-shadow-xs" />
+              <UserPlus className="w-4 h-4 text-[#FFD000] drop-shadow-xs" />
               <span className="tracking-wide uppercase font-sans">
                 SIMPAN KONTAK
               </span>
-            </a>
+            </button>
 
             {/* BUTTON B: VISIT MY WEBSITE */}
             <a
@@ -310,7 +331,11 @@ export default function App() {
         onUpdateAvatarSettings={handleUpdateAvatarSettings}
         onResetAvatar={handleResetAvatarSettings}
         initialTab={settingsActiveTab}
+        onOpenQr={handleOpenQrFromModal}
       />
+
+      {/* Real Camera-Scannable QR Code Modal */}
+      <QrModal isOpen={isQrOpen} onClose={() => setIsQrOpen(false)} />
     </main>
   );
 }
