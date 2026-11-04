@@ -8,7 +8,7 @@ interface QrModalProps {
   onClose: () => void;
 }
 
-export const PRODUCTION_DOMAIN = 'https://smartjourney.id';
+export const PRODUCTION_DOMAIN = 'https://sbyevrent.vercel.app/';
 
 /**
  * Returns the true production URL for QR code and NFC sharing,

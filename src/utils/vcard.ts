@@ -14,7 +14,7 @@ export function generateVCardString(): string {
     'TITLE:Driver Green SM',
     'TEL;TYPE=CELL,VOICE,PREF:+6282233697979',
     'TEL;TYPE=WHATSAPP:+6282233697979',
-    'URL;TYPE=WORK:https://smartjourney.id',
+    'URL;TYPE=WORK:https://sbyevrent.vercel.app/',
     'ADR;TYPE=WORK:;;Surabaya;Jawa Timur;;Indonesia',
     'NOTE:Driver Resmi Green SM Electric Taxi Surabaya\\nZero Emission • Eco Friendly • Safe & Comfort',
     'X-WA-NUMBER:+6282233697979',

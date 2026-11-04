@@ -17,7 +17,6 @@ import {
   UserPlus,
   CheckCircle2,
   ExternalLink,
-  QrCode,
 } from 'lucide-react';
 import { GreenSMLogo } from './components/GreenSMLogo';
 import { CurvedOrnaments } from './components/CurvedOrnaments';
@@ -25,7 +24,6 @@ import { DriverAvatar } from './components/DriverAvatar';
 import { ElectricTaxiCar } from './components/ElectricTaxiCar';
 import { ServicePills } from './components/ServicePills';
 import { UserBackgroundLayer } from './components/UserBackgroundLayer';
-import { QrModal } from './components/QrModal';
 import { saveDriverContact } from './utils/vcard';
 import { PERMANENT_DEFAULT_CONFIG } from './config/permanentSettings';
 
@@ -36,28 +34,6 @@ const WA_URL = `https://wa.me/${WA_PHONE}?text=${encodeURIComponent(WA_PREFILLED
 
 export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isQrOpen, setIsQrOpen] = useState(false);
-
-  // Bersihkan key LocalStorage lama agar perangkat pengunjung tidak menyimpan data rusak
-  React.useEffect(() => {
-    try {
-      const legacyKeys = [
-        'green_sm_bg_settings',
-        'green_sm_bg_settings_v1',
-        'green_sm_bg_settings_v2',
-        'green_sm_bg_settings_v3',
-        'green_sm_bg_settings_v4',
-        'green_sm_avatar_settings',
-        'green_sm_avatar_settings_v1',
-        'green_sm_avatar_settings_v2',
-        'green_sm_avatar_settings_v3',
-        'green_sm_avatar_settings_v4',
-      ];
-      legacyKeys.forEach((key) => localStorage.removeItem(key));
-    } catch {
-      // Abaikan jika di lingkungan tanpa akses localStorage
-    }
-  }, []);
 
   const handleSaveContact = async () => {
     try {
@@ -102,21 +78,9 @@ export default function App() {
         {/* ============================================================ */}
         <div className="relative z-10 flex flex-col items-center px-5 pt-6 pb-2 w-full">
           
-          {/* TOP SECTION: Header Logo GREEN SM & Quick QR Trigger */}
-          <header className="w-full flex items-center justify-between mb-3 px-1">
-            <div className="w-8"></div>
-            <div className="flex-1 flex justify-center">
-              <GreenSMLogo size="md" />
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsQrOpen(true)}
-              className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 border border-teal-200/80 flex items-center justify-center text-[#007F82] transition-colors cursor-pointer shadow-2xs"
-              title="Buka QR Code Kartu Nama"
-              aria-label="Buka QR Code"
-            >
-              <QrCode className="w-4 h-4 text-[#008E91]" />
-            </button>
+          {/* TOP SECTION: Header Logo GREEN SM Electric Taxi */}
+          <header className="w-full flex justify-center mb-3">
+            <GreenSMLogo size="md" />
           </header>
 
           {/* DRIVER PHOTO: Foto Resmi Wahyu Eka B.T. (Enlarged with Yellow Border) */}
@@ -200,7 +164,7 @@ export default function App() {
 
             {/* BUTTON B: VISIT MY WEBSITE */}
             <a
-              href="https://smartjourney.id"
+              href="https://sbyevrent.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-2xl bg-white/95 hover:bg-teal-50/70 border-2 border-[#00B5B8] text-[#007F82] hover:text-[#006A6D] font-extrabold text-sm sm:text-[14px] shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
@@ -224,22 +188,15 @@ export default function App() {
         <div className="relative z-10 w-full mt-auto pt-1">
           <ElectricTaxiCar />
 
-          {/* Bottom Card Footer: Klik untuk Buka QR Code */}
-          <footer
-            onClick={() => setIsQrOpen(true)}
-            className="w-full py-2.5 px-4 bg-gradient-to-t from-[#E6F8F6] to-transparent text-center select-none cursor-pointer group"
-            title="Klik untuk melihat QR Code Kartu Nama"
-          >
-            <p className="text-[10px] font-semibold text-[#007275]/80 tracking-wide uppercase transition-colors group-hover:text-[#005D60]">
+          {/* Bottom Card Footer Branding */}
+          <footer className="w-full py-2.5 px-4 bg-gradient-to-t from-[#E6F8F6] to-transparent text-center select-none">
+            <p className="text-[10px] font-semibold text-[#007275]/80 tracking-wide uppercase">
               Green SM Taxi • Wahyu Eka BT • Surabaya
             </p>
           </footer>
         </div>
 
       </section>
-
-      {/* Real Camera-Scannable QR Code Modal */}
-      <QrModal isOpen={isQrOpen} onClose={() => setIsQrOpen(false)} />
     </main>
   );
 }

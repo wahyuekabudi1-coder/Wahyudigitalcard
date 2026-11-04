@@ -10,35 +10,54 @@
 
 ---
 
-## 📋 Ringkasan Proyek
+## 📋 Ringkasan Arsitektur: Pure Static Landing Page
 
-Landing page profil digital *mobile-first* portrait premium yang dirancang khusus untuk driver taksi listrik Green SM, dapat diakses langsung oleh penumpang melalui **NFC Smart Card** dan **Scan QR Code Kamera HP**.
+Aplikasi ini beroperasi secara murni sebagai **Static Landing Page** (Frontend Single Page Application):
+- **100% Client-Side**: Dibangun menggunakan React 19, TypeScript, dan Vite 8.
+- **Tanpa Backend / Database**: Tidak menggunakan server Express, database, maupun API penyimpanan gambar runtime (`/api/save-permanent-asset`).
+- **Aset Fisik Permanen**: Seluruh gambar bersumber langsung dari direktori `public/assets/` yang terikat pada source code project dan ikut tersimpan di repositori Git.
+- **Tanpa Ketergantungan LocalStorage**: Konfigurasi tampilan default diatur terpusat di `src/config/permanentSettings.ts` dan tidak bergantung pada cache browser klien.
 
-### 🌟 Fitur Utama & Konfigurasi Default Permanen
+---
+
+## 🌟 Fitur Utama Kartu Nama Digital
 
 1. **Identitas Visual Resmi Green SM**:
-   - Logo asli **GREEN SM Electric Taxi** (format PNG transparan tanpa background box putih).
-   - **Foto Profil Driver Default Permanen**: Tersimpan di `public/assets/driver-wahyu-default.jpg` berbingkai lingkaran emas (#FFC800) dan watermark diagonal Green SM (tanpa ilustrasi kartun).
-   - Nama resmi: **Wahyu Eka B.T.**
-   - Badge identitas: **Driver Green SM**.
+   - Logo asli **GREEN SM Electric Taxi** (PNG transparan berkualitas tinggi).
+   - **Foto Profil Driver Default Permanen**: Tersimpan secara fisik di `public/assets/driver-profile.jpg` berbingkai lingkaran emas (#FFC800) dan watermark Green SM.
+   - **Background Resmi Green SM**: Tersimpan secara fisik di `public/assets/driver-background.jpg` dengan opacity paten 35%.
+   - Nama Driver: **Wahyu Eka B.T.**
+   - Badge Identitas: **Driver Green SM**.
 2. **WhatsApp Resmi dengan Pesan Otomatis**:
    - Nomor WhatsApp `0822 3369 7979` diposisikan simetris di tengah.
-   - Mengarahkan langsung ke WhatsApp dengan template pesan otomatis:
+   - Membuka WhatsApp secara langsung dengan template pesan pemesanan taksi:
      > *"Halo Wahyu, saya ingin pesan mobil listrik taksi Green SM."*
-3. **Tombol SIMPAN KONTAK (.VCF)**:
-   - Membagikan dan mengunduh file kontak vCard 3.0 resmi (`Wahyu_Eka_BT.vcf`) langsung ke buku telepon iPhone (Apple Contacts) dan Android (Google Contacts).
+3. **Tombol SIMPAN KONTAK (vCard .VCF)**:
+   - Mengunduh dan membagikan file kontak vCard 3.0 resmi (`Wahyu_Eka_BT.vcf`) langsung ke buku telepon iPhone (Apple Contacts) dan Android (Google Contacts).
 4. **Tombol VISIT MY WEBSITE**:
-   - Tautan langsung ke `https://smartjourney.id` dengan atribut keamanan `target="_blank" rel="noopener noreferrer"`.
-5. **Banner Taksi Listrik Green SM**:
-   - Banner mobil listrik taksi Green SM seamless di bagian bawah card dengan blending transparan.
-6. **Open Graph Image Preview (WhatsApp / Media Sosial)**:
-   - File permanen di `public/og-driver-wahyu.jpg` (1200 × 630 piksel) berisi logo Green SM, foto driver, mobil listrik, WhatsApp, dan identitas Surabaya.
+   - Tautan langsung ke `https://sbyevrent.vercel.app/` dengan atribut keamanan `target="_blank" rel="noopener noreferrer"`.
+5. **Tiga Pilar Layanan Green SM**:
+   - *Zero Emission*, *Eco Friendly*, dan *Safe & Comfort*.
+6. **Ilustrasi Taksi Listrik Green SM & Skyline Surabaya**:
+   - Banner mobil listrik taksi Green SM seamless di bagian bawah kartu nama.
 7. **QR Code Standar Industri (Camera-Scannable)**:
-   - Dihasilkan langsung dari domain deployment produksi (`https://smartjourney.id`) menggunakan modul `qrcode` dengan level koreksi kesalahan tinggi (*High Error Correction*).
-8. **Sistem Pengaturan Rahasia (Secret Easter Egg)**:
-   - Tampilan publik 100% bersih tanpa tombol edit yang mengganggu.
-   - Mengetuk footer (*Green SM Taxi • Wahyu Eka BT • Surabaya*) sebanyak **10 – 13 kali** membuka modal pengaturan background dan foto profil.
-   - Keluar dari menu atau mengetuk ke-14 kali otomatis mengunci dan menyembunyikan semua kontrol kembali ke semula.
+   - Dihasilkan secara client-side dari URL domain produksi (`https://sbyevrent.vercel.app/`) menggunakan modul `qrcode` dengan level koreksi kesalahan tinggi (*High Error Correction*).
+   - Dapat diakses langsung oleh penumpang dengan mengetuk ikon QR Code di bagian header atas atau mengetuk teks footer kartu nama.
+8. **Open Graph Image Preview (WhatsApp / Media Sosial)**:
+   - File permanen di `public/og-driver-wahyu.jpg` (1200 × 630 piksel) untuk preview link saat dibagikan melalui WhatsApp, Facebook, dan media sosial lainnya.
+
+---
+
+## 🔄 Alur Penggantian Gambar
+
+Pengelolaan gambar mengikuti alur statis yang sederhana dan dapat diandalkan:
+
+$$\text{Ganti File di public/assets/} \longrightarrow \text{Commit \& Push ke GitHub} \longrightarrow \text{Vercel Auto-Deploy} \longrightarrow \text{Tampil di Semua Perangkat}$$
+
+1. **Foto Profil**: Ganti file `public/assets/driver-profile.jpg`.
+2. **Background**: Ganti file `public/assets/driver-background.jpg`.
+3. **Konfigurasi Tambahan**: Sesuaikan zoom, posisi, atau opacity pada `src/config/permanentSettings.ts` bila diperlukan.
+4. **Deploy**: Lakukan `git commit` dan `git push` ke repositori GitHub. Vercel akan otomatis melakukan build statis dan menyajikan gambar terbaru kepada seluruh pengunjung.
 
 ---
 
@@ -49,27 +68,31 @@ Landing page profil digital *mobile-first* portrait premium yang dirancang khusu
 - **Styling**: Tailwind CSS v4
 - **Icons**: Lucide React
 - **QR Engine**: qrcode
-- **Image Engine**: sharp
-- **Deploy Target**: Vercel / GitHub
+- **Hosting / Deployment Target**: Vercel (Static Site Preset)
 
 ---
 
-## 🚀 Panduan Deployment ke GitHub & Vercel
+## 🚀 Panduan Build & Verifikasi Lokal
 
-### 1. Push ke GitHub
+### 1. Instalasi Dependensi Bersih
 ```bash
-git init
-git add .
-git commit -m "feat: finalize Green SM digital profile default configuration"
-git branch -M main
-git remote add origin https://github.com/USERNAME/green-sm-digital-profile.git
-git push -u origin main
+npm ci
 ```
 
-### 2. Deploy ke Vercel
-1. Buka [Vercel Dashboard](https://vercel.com/new).
-2. Import repository GitHub `green-sm-digital-profile`.
-3. Framework Preset: **Vite**.
-4. Build Command: `npm run build`.
-5. Output Directory: `dist`.
-6. Klik **Deploy**.
+### 2. Typecheck (TypeScript)
+```bash
+npm run lint
+```
+
+### 3. Production Build
+```bash
+npm run build
+```
+Hasil kompilasi statis akan berada di folder `dist/` dengan seluruh aset gambar otomatis disalin ke `dist/assets/`.
+
+### 4. Deploy ke Vercel
+1. Hubungkan repository GitHub ke [Vercel Dashboard](https://vercel.com).
+2. Framework Preset: **Vite**.
+3. Build Command: `npm run build`.
+4. Output Directory: `dist`.
+5. Deploy.
