@@ -91,7 +91,12 @@ export default function App() {
     try {
       const saved = localStorage.getItem(BG_STORAGE_KEY);
       if (saved) {
-        return { ...DEFAULT_BG_SETTINGS, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_BG_SETTINGS,
+          ...parsed,
+          imageUrl: parsed.imageUrl || DEFAULT_BG_SETTINGS.imageUrl,
+        };
       }
     } catch {
       // Fallback
@@ -104,7 +109,12 @@ export default function App() {
     try {
       const saved = localStorage.getItem(AVATAR_STORAGE_KEY);
       if (saved) {
-        return { ...DEFAULT_AVATAR_SETTINGS, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_AVATAR_SETTINGS,
+          ...parsed,
+          photoUrl: parsed.photoUrl || DEFAULT_AVATAR_SETTINGS.photoUrl,
+        };
       }
     } catch {
       // Fallback
@@ -151,6 +161,130 @@ export default function App() {
     setToastMessage('Foto profil kembali ke ilustrasi default Wahyu Eka B.T.');
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  const handleSaveAsPermanent = async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      const payload = {
+        avatarDataUrl: avatarSettings.photoUrl?.startsWith('data:') ? avatarSettings.photoUrl : undefined,
+        avatarConfig: {
+          zoom: avatarSettings.zoom,
+          positionX: avatarSettings.positionX,
+          positionY: avatarSettings.positionY,
+        },
+        bgDataUrl: bgSettings.imageUrl?.startsWith('data:') ? bgSettings.imageUrl : undefined,
+        bgConfig: {
+          opacity: bgSettings.opacity,
+          position: bgSettings.position,
+          size: bgSettings.size,
+          scale: bgSettings.scale,
+          repeat: bgSettings.repeat,
+          overlayColor: bgSettings.overlayColor,
+          overlayOpacity: bgSettings.overlayOpacity,
+        },
+      };
+
+      const res = await fetch('/api/save-permanent-asset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Server tidak dapat menyimpan aset fisik.');
+      }
+
+      const data = await res.json();
+      const cacheBust = '?t=' + Date.now();
+      const updatedAvatar: AvatarSettings = {
+        ...avatarSettings,
+        photoUrl: '/assets/driver-profile.jpg' + cacheBust,
+      };
+      const updatedBg: BackgroundSettings = {
+        ...bgSettings,
+        imageUrl: '/assets/driver-background.jpg' + cacheBust,
+      };
+
+      setAvatarSettings(updatedAvatar);
+      setBgSettings(updatedBg);
+
+      try {
+        localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify({ ...updatedAvatar, photoUrl: '/assets/driver-profile.jpg' }));
+        localStorage.setItem(BG_STORAGE_KEY, JSON.stringify({ ...updatedBg, imageUrl: '/assets/driver-background.jpg' }));
+      } catch {
+        // Ignore quota
+      }
+
+      setToastMessage('✅ Berhasil dikunci sebagai DEFAULT PERMANEN di Source Code!');
+      setTimeout(() => setToastMessage(null), 4000);
+
+      return {
+        success: true,
+        message: data.message || 'Foto profil & background berhasil disimpan ke source code proyek!',
+      };
+    } catch (err: unknown) {
+      console.error('Failed to save permanent asset:', err);
+      const msg = err instanceof Error ? err.message : 'Gagal menghubungi server penyimpan.';
+      return {
+        success: false,
+        message: msg,
+      };
+    }
+  };
+
+  // Auto-sync any existing Data URLs from LocalStorage to the permanent files on mount
+  React.useEffect(() => {
+    const autoSyncFromLocalStorage = async () => {
+      try {
+        const savedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
+        const savedBg = localStorage.getItem(BG_STORAGE_KEY);
+
+        let hasAvatarData = false;
+        let hasBgData = false;
+        let avatarData = null;
+        let bgData = null;
+
+        if (savedAvatar) {
+          avatarData = JSON.parse(savedAvatar);
+          if (avatarData?.photoUrl && typeof avatarData.photoUrl === 'string' && avatarData.photoUrl.startsWith('data:image/')) {
+            hasAvatarData = true;
+          }
+        }
+
+        if (savedBg) {
+          bgData = JSON.parse(savedBg);
+          if (bgData?.imageUrl && typeof bgData.imageUrl === 'string' && bgData.imageUrl.startsWith('data:image/')) {
+            hasBgData = true;
+          }
+        }
+
+        if (hasAvatarData || hasBgData) {
+          console.log('[AI Studio] Auto-extracting Data URL from LocalStorage to permanent files...');
+          const payload = {
+            avatarDataUrl: hasAvatarData ? avatarData.photoUrl : undefined,
+            avatarConfig: avatarData,
+            bgDataUrl: hasBgData ? bgData.imageUrl : undefined,
+            bgConfig: bgData,
+          };
+
+          const res = await fetch('/api/save-permanent-asset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          if (res.ok) {
+            setToastMessage('Foto/Background dari browser Anda otomatis disimpan permanen ke source code!');
+            setTimeout(() => setToastMessage(null), 4000);
+          }
+        }
+      } catch {
+        // Silently skip
+      }
+    };
+
+    autoSyncFromLocalStorage();
+  }, []);
 
   const openAvatarSettings = () => {
     setSettingsActiveTab('avatar');
@@ -332,6 +466,7 @@ export default function App() {
         onResetAvatar={handleResetAvatarSettings}
         initialTab={settingsActiveTab}
         onOpenQr={handleOpenQrFromModal}
+        onSavePermanent={handleSaveAsPermanent}
       />
 
       {/* Real Camera-Scannable QR Code Modal */}

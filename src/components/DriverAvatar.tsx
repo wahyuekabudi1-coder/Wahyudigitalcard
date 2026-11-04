@@ -1,5 +1,6 @@
 import React from 'react';
 import { Camera } from 'lucide-react';
+import { PERMANENT_DEFAULT_CONFIG } from '../config/permanentSettings';
 
 export interface AvatarSettings {
   photoUrl: string | null;
@@ -8,13 +9,13 @@ export interface AvatarSettings {
   positionX: number; // 0 - 100% (default 50% / center)
 }
 
-export const PERMANENT_DEFAULT_AVATAR_PHOTO = '/assets/driver-wahyu-default.jpg';
+export const PERMANENT_DEFAULT_AVATAR_PHOTO = PERMANENT_DEFAULT_CONFIG.avatar.photoUrl;
 
 export const DEFAULT_AVATAR_SETTINGS: AvatarSettings = {
-  photoUrl: PERMANENT_DEFAULT_AVATAR_PHOTO,
-  zoom: 100,
-  positionY: 50,
-  positionX: 50,
+  photoUrl: PERMANENT_DEFAULT_CONFIG.avatar.photoUrl,
+  zoom: PERMANENT_DEFAULT_CONFIG.avatar.zoom,
+  positionY: PERMANENT_DEFAULT_CONFIG.avatar.positionY,
+  positionX: PERMANENT_DEFAULT_CONFIG.avatar.positionX,
 };
 
 interface DriverAvatarProps {

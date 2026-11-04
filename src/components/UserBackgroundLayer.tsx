@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackgroundSettings } from './BackgroundSettingsModal';
+import { BackgroundSettings, PERMANENT_DEFAULT_BG_IMAGE } from './BackgroundSettingsModal';
 
 interface UserBackgroundLayerProps {
   settings: BackgroundSettings;
@@ -8,16 +8,14 @@ interface UserBackgroundLayerProps {
 /**
  * UserBackgroundLayer (Layer 2)
  *
- * Background image hasil upload pengguna, dengan opacity yang bisa diatur secara independen.
+ * Background image paten resmi Green SM / hasil upload kustom, dengan opacity yang bisa diatur secara independen.
  * Terletak di antara Layer 1 (Base White-Turquoise Gradient & Ornaments)
  * dan Layer 3 (Seluruh konten landing page).
  *
  * Menjamin parent section TIDAK diberi opacity sehingga konten tetap 100% jelas & terbaca.
  */
 export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({ settings }) => {
-  if (!settings.imageUrl) {
-    return null;
-  }
+  const imageUrl = settings.imageUrl || PERMANENT_DEFAULT_BG_IMAGE;
 
   // Calculate background-size style
   const backgroundSizeStyle =
@@ -32,7 +30,7 @@ export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({ settin
       <div
         className="w-full h-full transition-opacity duration-150 ease-out"
         style={{
-          backgroundImage: `url(${settings.imageUrl})`,
+          backgroundImage: `url(${imageUrl})`,
           backgroundPosition: settings.position,
           backgroundSize: backgroundSizeStyle,
           backgroundRepeat: settings.repeat ? 'repeat' : 'no-repeat',

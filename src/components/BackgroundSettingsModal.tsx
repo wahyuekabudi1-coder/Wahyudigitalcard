@@ -14,8 +14,15 @@ import {
   Move,
   Camera,
   QrCode,
+  Save,
+  ShieldCheck,
+  Download,
+  Loader2,
+  Sparkles,
+  AlertCircle,
 } from 'lucide-react';
 import { AvatarSettings, DEFAULT_AVATAR_SETTINGS } from './DriverAvatar';
+import { PERMANENT_DEFAULT_CONFIG } from '../config/permanentSettings';
 
 export interface BackgroundSettings {
   imageUrl: string | null;
@@ -28,15 +35,17 @@ export interface BackgroundSettings {
   overlayOpacity: number; // 0 - 100
 }
 
+export const PERMANENT_DEFAULT_BG_IMAGE = PERMANENT_DEFAULT_CONFIG.background.imageUrl;
+
 export const DEFAULT_BG_SETTINGS: BackgroundSettings = {
-  imageUrl: null,
-  opacity: 22,
-  position: 'center',
-  size: 'cover',
-  scale: 100,
-  repeat: false,
-  overlayColor: 'none',
-  overlayOpacity: 0,
+  imageUrl: PERMANENT_DEFAULT_CONFIG.background.imageUrl,
+  opacity: PERMANENT_DEFAULT_CONFIG.background.opacity,
+  position: PERMANENT_DEFAULT_CONFIG.background.position,
+  size: PERMANENT_DEFAULT_CONFIG.background.size,
+  scale: PERMANENT_DEFAULT_CONFIG.background.scale,
+  repeat: PERMANENT_DEFAULT_CONFIG.background.repeat,
+  overlayColor: PERMANENT_DEFAULT_CONFIG.background.overlayColor,
+  overlayOpacity: PERMANENT_DEFAULT_CONFIG.background.overlayOpacity,
 };
 
 interface BackgroundSettingsModalProps {
@@ -51,6 +60,7 @@ interface BackgroundSettingsModalProps {
   onResetAvatar?: () => void;
   initialTab?: 'background' | 'avatar';
   onOpenQr?: () => void;
+  onSavePermanent?: () => Promise<{ success: boolean; message: string }>;
 }
 
 export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = ({
@@ -64,6 +74,7 @@ export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = (
   onResetAvatar,
   initialTab = 'background',
   onOpenQr,
+  onSavePermanent,
 }) => {
   const [activeTab, setActiveTab] = useState<'background' | 'avatar'>('background');
   
@@ -76,6 +87,41 @@ export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = (
   const avatarFileInputRef = useRef<HTMLInputElement>(null);
   const [isAvatarDragging, setIsAvatarDragging] = useState(false);
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
+
+  // Permanent Save States
+  const [isSavingPermanent, setIsSavingPermanent] = useState(false);
+  const [permanentSaveResult, setPermanentSaveResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+
+  const handleTriggerSavePermanent = async () => {
+    if (!onSavePermanent) return;
+    setIsSavingPermanent(true);
+    setPermanentSaveResult(null);
+    try {
+      const res = await onSavePermanent();
+      setPermanentSaveResult(res);
+      setTimeout(() => setPermanentSaveResult(null), 5000);
+    } catch {
+      setPermanentSaveResult({
+        success: false,
+        message: 'Gagal menghubungkan ke server penyimpanan.',
+      });
+    } finally {
+      setIsSavingPermanent(false);
+    }
+  };
+
+  const handleDownloadAsset = (url: string | null, filename: string) => {
+    if (!url) return;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   // Sync initialTab when modal opens
   useEffect(() => {
@@ -493,11 +539,11 @@ export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = (
                       <button
                         type="button"
                         onClick={() => {
-                          onUpdateSettings({ ...settings, imageUrl: null });
+                          onUpdateSettings({ ...settings, imageUrl: PERMANENT_DEFAULT_BG_IMAGE });
                           if (bgFileInputRef.current) bgFileInputRef.current.value = '';
                         }}
                         className="p-1.5 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
-                        title="Hapus gambar background"
+                        title="Kembalikan ke background paten default"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -696,6 +742,84 @@ export const BackgroundSettingsModal: React.FC<BackgroundSettingsModalProps> = (
               </div>
             </div>
           )}
+
+          {/* ============================================================ */}
+          {/* MASTER ACTION: KUNCI & SIMPAN SEBAGAI DEFAULT PERMANEN        */}
+          {/* ============================================================ */}
+          <div className="rounded-2xl border-2 border-teal-500/50 bg-gradient-to-br from-teal-50/90 via-white to-emerald-50/60 p-4 shadow-sm space-y-3 mt-3">
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#008E91] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <ShieldCheck className="w-4 h-4 text-[#FFD000]" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h4 className="text-xs font-black text-[#033436] tracking-tight">
+                    Kunci Sebagai Default Permanen
+                  </h4>
+                  <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-teal-100 text-[#007F82] border border-teal-200">
+                    Source Code
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                  Simpan foto &amp; background ke <code className="font-mono font-bold text-[#007F82]">/public/assets/</code> agar tidak pernah hilang saat di-push ke GitHub &amp; Vercel.
+                </p>
+              </div>
+            </div>
+
+            {permanentSaveResult && (
+              <div
+                className={`p-2.5 rounded-xl text-[11px] font-semibold flex items-center gap-2 animate-in fade-in ${
+                  permanentSaveResult.success
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
+                    : 'bg-red-50 text-red-800 border border-red-300'
+                }`}
+              >
+                {permanentSaveResult.success ? (
+                  <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                )}
+                <span className="leading-snug">{permanentSaveResult.message}</span>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={handleTriggerSavePermanent}
+                disabled={isSavingPermanent}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#008E91] via-[#00A3A6] to-[#00B5B8] hover:from-[#007A7C] hover:to-[#00A0A3] text-white font-black text-xs shadow-md shadow-teal-700/20 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
+              >
+                {isSavingPermanent ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>Menyimpan ke Source Code...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 text-[#FFD000]" />
+                    <span>SIMPAN SEBAGAI DEFAULT PERMANEN</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (activeTab === 'avatar' && avatarSettings?.photoUrl) {
+                    handleDownloadAsset(avatarSettings.photoUrl, 'driver-profile.jpg');
+                  } else if (settings.imageUrl) {
+                    handleDownloadAsset(settings.imageUrl, 'driver-background.jpg');
+                  }
+                }}
+                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-600 font-bold text-[11px] border border-slate-200 transition-colors cursor-pointer"
+                title="Unduh file gambar ke komputer"
+              >
+                <Download className="w-3.5 h-3.5 text-slate-500" />
+                <span>Unduh File</span>
+              </button>
+            </div>
+          </div>
 
         </div>
 
