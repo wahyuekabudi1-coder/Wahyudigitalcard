@@ -1,0 +1,6 @@
+{
+  "name": "Green SM Digital Driver Profile - Wahyu Eka B.T.",
+  "description": "Digital Business Card Landing Page resmi untuk Driver Green SM Electric Taxi, Wahyu Eka B.T. di Surabaya, Jawa Timur.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
