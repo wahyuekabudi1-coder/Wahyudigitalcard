@@ -1,20 +1,26 @@
 import React from 'react';
-import { BackgroundSettings, PERMANENT_DEFAULT_BG_IMAGE } from './BackgroundSettingsModal';
+import {
+  PERMANENT_DEFAULT_CONFIG,
+  PermanentBackgroundConfig,
+} from '../config/permanentSettings';
 
 interface UserBackgroundLayerProps {
-  settings: BackgroundSettings;
+  settings?: PermanentBackgroundConfig;
 }
 
 /**
  * UserBackgroundLayer (Layer 2)
  *
- * Background image paten resmi Green SM / hasil upload kustom, dengan opacity yang bisa diatur secara independen.
+ * Background image paten resmi Green SM Surabaya yang dibaca langsung
+ * dari aset statis /public/assets/driver-background.jpg melalui permanentSettings.ts.
  * Terletak di antara Layer 1 (Base White-Turquoise Gradient & Ornaments)
  * dan Layer 3 (Seluruh konten landing page).
  *
  * Menjamin parent section TIDAK diberi opacity sehingga konten tetap 100% jelas & terbaca.
  */
-export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({ settings }) => {
+export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({
+  settings = PERMANENT_DEFAULT_CONFIG.background,
+}) => {
   const rawUrl = settings.imageUrl;
   const safeImageUrl =
     typeof rawUrl === 'string' &&
@@ -23,11 +29,19 @@ export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({ settin
     rawUrl !== 'undefined' &&
     !rawUrl.startsWith('blob:')
       ? rawUrl
-      : PERMANENT_DEFAULT_BG_IMAGE;
+      : PERMANENT_DEFAULT_CONFIG.background.imageUrl;
 
   // Ensure safe opacity so the watermark is never completely invisible (0) or NaN
   const safeOpacity =
-    Math.max(10, Math.min(100, typeof settings.opacity === 'number' && !isNaN(settings.opacity) ? settings.opacity : 35)) / 100;
+    Math.max(
+      10,
+      Math.min(
+        100,
+        typeof settings.opacity === 'number' && !isNaN(settings.opacity)
+          ? settings.opacity
+          : PERMANENT_DEFAULT_CONFIG.background.opacity
+      )
+    ) / 100;
 
   const safePosition =
     typeof settings.position === 'string' && settings.position.trim() !== ''
@@ -43,7 +57,7 @@ export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({ settin
       className="absolute inset-0 pointer-events-none select-none overflow-hidden z-[2]"
       aria-hidden="true"
     >
-      {/* Layer 2A: The User-Uploaded / Permanent Watermark Image */}
+      {/* Layer 2A: The Permanent Watermark Image */}
       <div
         className="w-full h-full transition-opacity duration-150 ease-out"
         style={{

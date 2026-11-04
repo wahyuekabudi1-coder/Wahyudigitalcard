@@ -1,111 +1,33 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * WAHYU DIGITAL BUSINESS CARD — FULLY STATIC LANDING PAGE
+ * Green SM Electric Taxi Surabaya
+ *
+ * Halaman landing page statis murni tanpa backend server, tanpa database,
+ * dan tanpa ketergantungan LocalStorage untuk foto profil maupun background.
+ * Seluruh aset visual bersumber langsung dari file fisik /public/assets/
+ * yang didefinisikan secara permanen di src/config/permanentSettings.ts.
  */
 
 import React, { useState } from 'react';
 import {
   Globe,
-  PhoneCall,
   UserPlus,
   CheckCircle2,
   ExternalLink,
+  QrCode,
 } from 'lucide-react';
 import { GreenSMLogo } from './components/GreenSMLogo';
 import { CurvedOrnaments } from './components/CurvedOrnaments';
-import {
-  DriverAvatar,
-  AvatarSettings,
-  DEFAULT_AVATAR_SETTINGS,
-} from './components/DriverAvatar';
+import { DriverAvatar } from './components/DriverAvatar';
 import { ElectricTaxiCar } from './components/ElectricTaxiCar';
 import { ServicePills } from './components/ServicePills';
-import {
-  BackgroundSettingsModal,
-  BackgroundSettings,
-  DEFAULT_BG_SETTINGS,
-} from './components/BackgroundSettingsModal';
 import { UserBackgroundLayer } from './components/UserBackgroundLayer';
 import { QrModal } from './components/QrModal';
 import { saveDriverContact } from './utils/vcard';
-
-const BG_STORAGE_KEY = 'green_sm_bg_settings_v4';
-const AVATAR_STORAGE_KEY = 'green_sm_avatar_settings_v4';
-
-const LEGACY_STORAGE_KEYS = [
-  'green_sm_bg_settings',
-  'green_sm_bg_settings_v1',
-  'green_sm_bg_settings_v2',
-  'green_sm_bg_settings_v3',
-  'green_sm_avatar_settings',
-  'green_sm_avatar_settings_v1',
-  'green_sm_avatar_settings_v2',
-  'green_sm_avatar_settings_v3',
-];
-
-// Helper to sanitize any stored background settings and ensure permanent defaults are never wiped out
-function sanitizeBackgroundSettings(raw: any): BackgroundSettings {
-  if (!raw || typeof raw !== 'object') return DEFAULT_BG_SETTINGS;
-  const imageUrl = (typeof raw.imageUrl === 'string' && raw.imageUrl.trim() !== '' && raw.imageUrl !== 'null' && raw.imageUrl !== 'undefined' && !raw.imageUrl.startsWith('blob:'))
-    ? raw.imageUrl
-    : DEFAULT_BG_SETTINGS.imageUrl;
-  const opacity = typeof raw.opacity === 'number' && !isNaN(raw.opacity)
-    ? Math.max(10, Math.min(100, raw.opacity))
-    : DEFAULT_BG_SETTINGS.opacity;
-  const position = typeof raw.position === 'string' && raw.position.trim() !== ''
-    ? raw.position
-    : DEFAULT_BG_SETTINGS.position;
-  const size = (raw.size === 'contain' || raw.size === 'cover' || raw.size === 'custom')
-    ? raw.size
-    : DEFAULT_BG_SETTINGS.size;
-  const scale = typeof raw.scale === 'number' && !isNaN(raw.scale)
-    ? Math.max(30, Math.min(200, raw.scale))
-    : DEFAULT_BG_SETTINGS.scale;
-  const repeat = typeof raw.repeat === 'boolean'
-    ? raw.repeat
-    : DEFAULT_BG_SETTINGS.repeat;
-  const overlayColor = typeof raw.overlayColor === 'string'
-    ? raw.overlayColor
-    : DEFAULT_BG_SETTINGS.overlayColor;
-  const overlayOpacity = typeof raw.overlayOpacity === 'number' && !isNaN(raw.overlayOpacity)
-    ? Math.max(0, Math.min(100, raw.overlayOpacity))
-    : DEFAULT_BG_SETTINGS.overlayOpacity;
-  return {
-    ...DEFAULT_BG_SETTINGS,
-    ...raw,
-    imageUrl,
-    opacity,
-    position,
-    size,
-    scale,
-    repeat,
-    overlayColor,
-    overlayOpacity,
-  };
-}
-
-// Helper to sanitize any stored avatar settings
-function sanitizeAvatarSettings(raw: any): AvatarSettings {
-  if (!raw || typeof raw !== 'object') return DEFAULT_AVATAR_SETTINGS;
-  const photoUrl = (typeof raw.photoUrl === 'string' && raw.photoUrl.trim() !== '' && raw.photoUrl !== 'null' && raw.photoUrl !== 'undefined' && !raw.photoUrl.startsWith('blob:'))
-    ? raw.photoUrl
-    : DEFAULT_AVATAR_SETTINGS.photoUrl;
-  const zoom = typeof raw.zoom === 'number' && !isNaN(raw.zoom)
-    ? Math.max(50, Math.min(200, raw.zoom))
-    : DEFAULT_AVATAR_SETTINGS.zoom;
-  const positionY = typeof raw.positionY === 'number' && !isNaN(raw.positionY)
-    ? Math.max(0, Math.min(100, raw.positionY))
-    : DEFAULT_AVATAR_SETTINGS.positionY;
-  const positionX = typeof raw.positionX === 'number' && !isNaN(raw.positionX)
-    ? Math.max(0, Math.min(100, raw.positionX))
-    : DEFAULT_AVATAR_SETTINGS.positionX;
-  return {
-    photoUrl,
-    zoom,
-    positionY,
-    positionX,
-  };
-}
+import { PERMANENT_DEFAULT_CONFIG } from './config/permanentSettings';
 
 // Nomor WhatsApp resmi driver Wahyu Eka B.T. & template pesan pemesanan taksi
 const WA_PHONE = '6282233697979';
@@ -114,52 +36,28 @@ const WA_URL = `https://wa.me/${WA_PHONE}?text=${encodeURIComponent(WA_PREFILLED
 
 export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isQrOpen, setIsQrOpen] = useState(false);
-  const [settingsActiveTab, setSettingsActiveTab] = useState<'background' | 'avatar'>('background');
 
-  // Purge legacy obsolete localStorage keys on initial mount
+  // Bersihkan key LocalStorage lama agar perangkat pengunjung tidak menyimpan data rusak
   React.useEffect(() => {
     try {
-      LEGACY_STORAGE_KEYS.forEach((key) => {
-        localStorage.removeItem(key);
-      });
+      const legacyKeys = [
+        'green_sm_bg_settings',
+        'green_sm_bg_settings_v1',
+        'green_sm_bg_settings_v2',
+        'green_sm_bg_settings_v3',
+        'green_sm_bg_settings_v4',
+        'green_sm_avatar_settings',
+        'green_sm_avatar_settings_v1',
+        'green_sm_avatar_settings_v2',
+        'green_sm_avatar_settings_v3',
+        'green_sm_avatar_settings_v4',
+      ];
+      legacyKeys.forEach((key) => localStorage.removeItem(key));
     } catch {
-      // Ignore in restricted environments
+      // Abaikan jika di lingkungan tanpa akses localStorage
     }
   }, []);
-
-  // Secret Click Easter Egg (sembunyi di footer, 10-13x buka pengaturan, 14x kembali ke semula)
-  const [secretClickCount, setSecretClickCount] = useState(0);
-
-  const handleFooterSecretClick = () => {
-    setSecretClickCount((prev) => {
-      const next = prev + 1;
-      if (next >= 10 && next <= 13) {
-        setIsSettingsOpen(true);
-        setToastMessage(`Akses Pengaturan Tampilan Terbuka (${next}/13)`);
-        setTimeout(() => setToastMessage(null), 2500);
-        return next;
-      }
-      if (next >= 14) {
-        handleCloseSettings();
-        setToastMessage('Pengaturan dikunci kembali ke semula.');
-        setTimeout(() => setToastMessage(null), 2500);
-        return 0;
-      }
-      return next;
-    });
-  };
-
-  const handleCloseSettings = () => {
-    setIsSettingsOpen(false);
-    setSecretClickCount(0); // Seluruh tombol langsung hilang & kembali ke semula saat keluar dari menu
-  };
-
-  const handleOpenQrFromModal = () => {
-    setIsSettingsOpen(false);
-    setIsQrOpen(true);
-  };
 
   const handleSaveContact = async () => {
     try {
@@ -172,210 +70,6 @@ export default function App() {
     }
   };
 
-  // Background Settings State (Layer 2)
-  const [bgSettings, setBgSettings] = useState<BackgroundSettings>(() => {
-    try {
-      const saved = localStorage.getItem(BG_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return sanitizeBackgroundSettings(parsed);
-      }
-    } catch {
-      // Fallback
-    }
-    return DEFAULT_BG_SETTINGS;
-  });
-
-  // Avatar Photo Settings State (Layer 3)
-  const [avatarSettings, setAvatarSettings] = useState<AvatarSettings>(() => {
-    try {
-      const saved = localStorage.getItem(AVATAR_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return sanitizeAvatarSettings(parsed);
-      }
-    } catch {
-      // Fallback
-    }
-    return DEFAULT_AVATAR_SETTINGS;
-  });
-
-  const handleUpdateBgSettings = (newSettings: BackgroundSettings) => {
-    const sanitized = sanitizeBackgroundSettings(newSettings);
-    setBgSettings(sanitized);
-    try {
-      localStorage.setItem(BG_STORAGE_KEY, JSON.stringify(sanitized));
-    } catch {
-      // Ignore quota
-    }
-  };
-
-  const handleResetBgSettings = () => {
-    setBgSettings(DEFAULT_BG_SETTINGS);
-    try {
-      localStorage.removeItem(BG_STORAGE_KEY);
-    } catch {
-      //
-    }
-    setToastMessage('Background berhasil direset ke default permanen.');
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  const handleUpdateAvatarSettings = (newSettings: AvatarSettings) => {
-    const sanitized = sanitizeAvatarSettings(newSettings);
-    setAvatarSettings(sanitized);
-    try {
-      localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify(sanitized));
-    } catch {
-      // Ignore quota
-    }
-  };
-
-  const handleResetAvatarSettings = () => {
-    setAvatarSettings(DEFAULT_AVATAR_SETTINGS);
-    try {
-      localStorage.removeItem(AVATAR_STORAGE_KEY);
-    } catch {
-      //
-    }
-    setToastMessage('Foto profil kembali ke ilustrasi default Wahyu Eka B.T.');
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  const handleSaveAsPermanent = async (): Promise<{ success: boolean; message: string }> => {
-    try {
-      const payload = {
-        avatarDataUrl: avatarSettings.photoUrl?.startsWith('data:') ? avatarSettings.photoUrl : undefined,
-        avatarConfig: {
-          zoom: avatarSettings.zoom,
-          positionX: avatarSettings.positionX,
-          positionY: avatarSettings.positionY,
-        },
-        bgDataUrl: bgSettings.imageUrl?.startsWith('data:') ? bgSettings.imageUrl : undefined,
-        bgConfig: {
-          opacity: bgSettings.opacity,
-          position: bgSettings.position,
-          size: bgSettings.size,
-          scale: bgSettings.scale,
-          repeat: bgSettings.repeat,
-          overlayColor: bgSettings.overlayColor,
-          overlayOpacity: bgSettings.overlayOpacity,
-        },
-      };
-
-      const res = await fetch('/api/save-permanent-asset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Server tidak dapat menyimpan aset fisik.');
-      }
-
-      const data = await res.json();
-      const cacheBust = '?t=' + Date.now();
-      const updatedAvatar: AvatarSettings = {
-        ...avatarSettings,
-        photoUrl: '/assets/driver-profile.jpg' + cacheBust,
-      };
-      const updatedBg: BackgroundSettings = {
-        ...bgSettings,
-        imageUrl: '/assets/driver-background.jpg' + cacheBust,
-      };
-
-      setAvatarSettings(updatedAvatar);
-      setBgSettings(updatedBg);
-
-      try {
-        localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify({ ...updatedAvatar, photoUrl: '/assets/driver-profile.jpg' }));
-        localStorage.setItem(BG_STORAGE_KEY, JSON.stringify({ ...updatedBg, imageUrl: '/assets/driver-background.jpg' }));
-      } catch {
-        // Ignore quota
-      }
-
-      setToastMessage('✅ Berhasil dikunci sebagai DEFAULT PERMANEN di Source Code!');
-      setTimeout(() => setToastMessage(null), 4000);
-
-      return {
-        success: true,
-        message: data.message || 'Foto profil & background berhasil disimpan ke source code proyek!',
-      };
-    } catch (err: unknown) {
-      console.error('Failed to save permanent asset:', err);
-      const msg = err instanceof Error ? err.message : 'Gagal menghubungi server penyimpan.';
-      return {
-        success: false,
-        message: msg,
-      };
-    }
-  };
-
-  // Auto-sync any existing Data URLs from LocalStorage to the permanent files on mount
-  React.useEffect(() => {
-    const autoSyncFromLocalStorage = async () => {
-      try {
-        const savedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
-        const savedBg = localStorage.getItem(BG_STORAGE_KEY);
-
-        let hasAvatarData = false;
-        let hasBgData = false;
-        let avatarData = null;
-        let bgData = null;
-
-        if (savedAvatar) {
-          avatarData = JSON.parse(savedAvatar);
-          if (avatarData?.photoUrl && typeof avatarData.photoUrl === 'string' && avatarData.photoUrl.startsWith('data:image/')) {
-            hasAvatarData = true;
-          }
-        }
-
-        if (savedBg) {
-          bgData = JSON.parse(savedBg);
-          if (bgData?.imageUrl && typeof bgData.imageUrl === 'string' && bgData.imageUrl.startsWith('data:image/')) {
-            hasBgData = true;
-          }
-        }
-
-        if (hasAvatarData || hasBgData) {
-          console.log('[AI Studio] Auto-extracting Data URL from LocalStorage to permanent files...');
-          const payload = {
-            avatarDataUrl: hasAvatarData ? avatarData.photoUrl : undefined,
-            avatarConfig: avatarData,
-            bgDataUrl: hasBgData ? bgData.imageUrl : undefined,
-            bgConfig: bgData,
-          };
-
-          const res = await fetch('/api/save-permanent-asset', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-
-          if (res.ok) {
-            setToastMessage('Foto/Background dari browser Anda otomatis disimpan permanen ke source code!');
-            setTimeout(() => setToastMessage(null), 4000);
-          }
-        }
-      } catch {
-        // Silently skip
-      }
-    };
-
-    autoSyncFromLocalStorage();
-  }, []);
-
-  const openAvatarSettings = () => {
-    setSettingsActiveTab('avatar');
-    setIsSettingsOpen(true);
-  };
-
-  const openBgSettings = () => {
-    setSettingsActiveTab('background');
-    setIsSettingsOpen(true);
-  };
-
   return (
     <main className="min-h-screen w-full bg-slate-200/80 flex flex-col items-center justify-start sm:py-6 sm:px-4">
       {/* Toast Notification */}
@@ -385,8 +79,6 @@ export default function App() {
           <span className="leading-snug">{toastMessage}</span>
         </div>
       )}
-
-
 
       {/* ============================================================== */}
       {/* MASTER DIGITAL BUSINESS CARD (PORTRAIT FORMAT) */}
@@ -401,24 +93,36 @@ export default function App() {
         <CurvedOrnaments />
 
         {/* ============================================================ */}
-        {/* LAYER 2: Background Image Hasil Upload Pengguna (Watermark)  */}
+        {/* LAYER 2: Background Watermark Permanen Green SM              */}
         {/* ============================================================ */}
-        <UserBackgroundLayer settings={bgSettings} />
+        <UserBackgroundLayer settings={PERMANENT_DEFAULT_CONFIG.background} />
 
         {/* ============================================================ */}
         {/* LAYER 3: Seluruh Konten Landing Page (DIKUNCI & TERBACA)    */}
         {/* ============================================================ */}
         <div className="relative z-10 flex flex-col items-center px-5 pt-6 pb-2 w-full">
           
-          {/* TOP SECTION: Logo GREEN SM & Electric Taxi */}
-          <header className="w-full flex justify-center mb-3">
-            <GreenSMLogo size="md" />
+          {/* TOP SECTION: Header Logo GREEN SM & Quick QR Trigger */}
+          <header className="w-full flex items-center justify-between mb-3 px-1">
+            <div className="w-8"></div>
+            <div className="flex-1 flex justify-center">
+              <GreenSMLogo size="md" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsQrOpen(true)}
+              className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 border border-teal-200/80 flex items-center justify-center text-[#007F82] transition-colors cursor-pointer shadow-2xs"
+              title="Buka QR Code Kartu Nama"
+              aria-label="Buka QR Code"
+            >
+              <QrCode className="w-4 h-4 text-[#008E91]" />
+            </button>
           </header>
 
-          {/* DRIVER PHOTO: PERBESAR FOTONYA (Enlarged with Yellow Border & Green SM Watermark) */}
+          {/* DRIVER PHOTO: Foto Resmi Wahyu Eka B.T. (Enlarged with Yellow Border) */}
           <div className="my-1 flex justify-center">
             <DriverAvatar
-              avatarSettings={avatarSettings}
+              avatarSettings={PERMANENT_DEFAULT_CONFIG.avatar}
             />
           </div>
 
@@ -465,7 +169,7 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Sisi Kanan: Ikon Kotak */}
+              {/* Sisi Kanan: Ikon Buka Link */}
               <div
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 group-hover:bg-[#25D366] group-hover:text-white group-hover:border-[#25D366] flex items-center justify-center shrink-0 transition-colors shadow-2xs"
                 title="Buka WhatsApp"
@@ -475,7 +179,7 @@ export default function App() {
             </a>
           </div>
 
-          {/* TWO MAIN ACTION BUTTONS: SIMPAN KONTAK (PANGGILAN) & VISIT MY WEBSITE */}
+          {/* TWO MAIN ACTION BUTTONS: SIMPAN KONTAK (VCARD) & VISIT MY WEBSITE */}
           <div className="w-full flex flex-col gap-2.5 my-1">
             
             {/* BUTTON A: SIMPAN KONTAK (MENGUNDUH / MEMBAGIKAN FILE KONTAK .VCF KE HP) */}
@@ -520,11 +224,11 @@ export default function App() {
         <div className="relative z-10 w-full mt-auto pt-1">
           <ElectricTaxiCar />
 
-          {/* Bottom Card Footer Branding & Secret Trigger: 10-13x buka pengaturan, 14x kembali ke semula */}
+          {/* Bottom Card Footer: Klik untuk Buka QR Code */}
           <footer
-            onClick={handleFooterSecretClick}
+            onClick={() => setIsQrOpen(true)}
             className="w-full py-2.5 px-4 bg-gradient-to-t from-[#E6F8F6] to-transparent text-center select-none cursor-pointer group"
-            title="Green SM Taxi • Wahyu Eka BT • Surabaya"
+            title="Klik untuk melihat QR Code Kartu Nama"
           >
             <p className="text-[10px] font-semibold text-[#007275]/80 tracking-wide uppercase transition-colors group-hover:text-[#005D60]">
               Green SM Taxi • Wahyu Eka BT • Surabaya
@@ -533,21 +237,6 @@ export default function App() {
         </div>
 
       </section>
-
-      {/* Modal Pengaturan Tampilan (Background & Foto Profil) */}
-      <BackgroundSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={handleCloseSettings}
-        settings={bgSettings}
-        onUpdateSettings={handleUpdateBgSettings}
-        onReset={handleResetBgSettings}
-        avatarSettings={avatarSettings}
-        onUpdateAvatarSettings={handleUpdateAvatarSettings}
-        onResetAvatar={handleResetAvatarSettings}
-        initialTab={settingsActiveTab}
-        onOpenQr={handleOpenQrFromModal}
-        onSavePermanent={handleSaveAsPermanent}
-      />
 
       {/* Real Camera-Scannable QR Code Modal */}
       <QrModal isOpen={isQrOpen} onClose={() => setIsQrOpen(false)} />
