@@ -11,3 +11,6 @@ coverage/
 .vscode/
 .idea/
 .aistudio/
+bun.lock*
+yarn.lock
+pnpm-lock.yaml
