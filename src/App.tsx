@@ -1,31 +1,36 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
- *
- * WAHYU DIGITAL BUSINESS CARD — FULLY STATIC LANDING PAGE
- * Green SM Electric Taxi Surabaya
- *
- * Halaman landing page statis murni tanpa backend server, tanpa database,
- * dan tanpa ketergantungan LocalStorage untuk foto profil maupun background.
- * Seluruh aset visual bersumber langsung dari file fisik /public/assets/
- * yang didefinisikan secara permanen di src/config/permanentSettings.ts.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Globe,
+  PhoneCall,
   UserPlus,
   CheckCircle2,
   ExternalLink,
 } from 'lucide-react';
 import { GreenSMLogo } from './components/GreenSMLogo';
 import { CurvedOrnaments } from './components/CurvedOrnaments';
-import { DriverAvatar } from './components/DriverAvatar';
+import {
+  DriverAvatar,
+  AvatarSettings,
+  DEFAULT_AVATAR_SETTINGS,
+} from './components/DriverAvatar';
 import { ElectricTaxiCar } from './components/ElectricTaxiCar';
 import { ServicePills } from './components/ServicePills';
+import {
+  BackgroundSettingsModal,
+  BackgroundSettings,
+  DEFAULT_BG_SETTINGS,
+} from './components/BackgroundSettingsModal';
 import { UserBackgroundLayer } from './components/UserBackgroundLayer';
+import { QrModal } from './components/QrModal';
 import { saveDriverContact } from './utils/vcard';
-import { PERMANENT_DEFAULT_CONFIG } from './config/permanentSettings';
+
+const BG_STORAGE_KEY = 'green_sm_bg_settings_v2';
+const AVATAR_STORAGE_KEY = 'green_sm_avatar_settings_v1';
 
 // Nomor WhatsApp resmi driver Wahyu Eka B.T. & template pesan pemesanan taksi
 const WA_PHONE = '6282233697979';
@@ -34,6 +39,41 @@ const WA_URL = `https://wa.me/${WA_PHONE}?text=${encodeURIComponent(WA_PREFILLED
 
 export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isQrOpen, setIsQrOpen] = useState(false);
+  const [settingsActiveTab, setSettingsActiveTab] = useState<'background' | 'avatar'>('background');
+
+  // Secret Click Easter Egg (sembunyi di footer, 10-13x buka pengaturan, 14x kembali ke semula)
+  const [secretClickCount, setSecretClickCount] = useState(0);
+
+  const handleFooterSecretClick = () => {
+    setSecretClickCount((prev) => {
+      const next = prev + 1;
+      if (next >= 10 && next <= 13) {
+        setIsSettingsOpen(true);
+        setToastMessage(`Akses Pengaturan Tampilan Terbuka (${next}/13)`);
+        setTimeout(() => setToastMessage(null), 2500);
+        return next;
+      }
+      if (next >= 14) {
+        handleCloseSettings();
+        setToastMessage('Pengaturan dikunci kembali ke semula.');
+        setTimeout(() => setToastMessage(null), 2500);
+        return 0;
+      }
+      return next;
+    });
+  };
+
+  const handleCloseSettings = () => {
+    setIsSettingsOpen(false);
+    setSecretClickCount(0); // Seluruh tombol langsung hilang & kembali ke semula saat keluar dari menu
+  };
+
+  const handleOpenQrFromModal = () => {
+    setIsSettingsOpen(false);
+    setIsQrOpen(true);
+  };
 
   const handleSaveContact = async () => {
     try {
@@ -46,6 +86,126 @@ export default function App() {
     }
   };
 
+  // Background Settings State (Layer 2)
+  const [bgSettings, setBgSettings] = useState<BackgroundSettings>(() => {
+    try {
+      const saved = localStorage.getItem(BG_STORAGE_KEY);
+      if (saved) {
+        return { ...DEFAULT_BG_SETTINGS, ...JSON.parse(saved) };
+      }
+    } catch {
+      // Fallback
+    }
+    return DEFAULT_BG_SETTINGS;
+  });
+
+  // Avatar Photo Settings State (Layer 3)
+  const [avatarSettings, setAvatarSettings] = useState<AvatarSettings>(() => {
+    try {
+      const saved = localStorage.getItem(AVATAR_STORAGE_KEY);
+      if (saved) {
+        return { ...DEFAULT_AVATAR_SETTINGS, ...JSON.parse(saved) };
+      }
+    } catch {
+      // Fallback
+    }
+    return DEFAULT_AVATAR_SETTINGS;
+  });
+
+  // Auto-sync localStorage image uploads to disk files in dev mode
+  useEffect(() => {
+    try {
+      const savedBg = localStorage.getItem(BG_STORAGE_KEY);
+      const savedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
+      const bgParsed = savedBg ? JSON.parse(savedBg) : null;
+      const avatarParsed = savedAvatar ? JSON.parse(savedAvatar) : null;
+
+      if (
+        (bgParsed?.imageUrl && bgParsed.imageUrl.startsWith('data:image/')) ||
+        (avatarParsed?.photoUrl && avatarParsed.photoUrl.startsWith('data:image/'))
+      ) {
+        fetch('/api/persist-defaults', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bgImageUrl: bgParsed?.imageUrl,
+            bgSettings: bgParsed,
+            avatarPhotoUrl: avatarParsed?.photoUrl,
+            avatarSettings: avatarParsed,
+          }),
+        }).catch(() => {});
+      }
+    } catch {
+      //
+    }
+  }, []);
+
+  const handleUpdateBgSettings = (newSettings: BackgroundSettings) => {
+    setBgSettings(newSettings);
+    try {
+      localStorage.setItem(BG_STORAGE_KEY, JSON.stringify(newSettings));
+      fetch('/api/persist-defaults', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bgImageUrl: newSettings.imageUrl?.startsWith('data:image/') ? newSettings.imageUrl : undefined,
+          bgSettings: newSettings,
+        }),
+      }).catch(() => {});
+    } catch {
+      // Ignore quota
+    }
+  };
+
+  const handleResetBgSettings = () => {
+    setBgSettings(DEFAULT_BG_SETTINGS);
+    try {
+      localStorage.removeItem(BG_STORAGE_KEY);
+    } catch {
+      //
+    }
+    setToastMessage('Background berhasil direset.');
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleUpdateAvatarSettings = (newSettings: AvatarSettings) => {
+    setAvatarSettings(newSettings);
+    try {
+      localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify(newSettings));
+      fetch('/api/persist-defaults', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          avatarPhotoUrl: newSettings.photoUrl?.startsWith('data:image/') ? newSettings.photoUrl : undefined,
+          avatarSettings: newSettings,
+        }),
+      }).catch(() => {});
+    } catch {
+      // Ignore quota
+    }
+  };
+
+  const handleResetAvatarSettings = () => {
+    setAvatarSettings(DEFAULT_AVATAR_SETTINGS);
+    try {
+      localStorage.removeItem(AVATAR_STORAGE_KEY);
+    } catch {
+      //
+    }
+    setToastMessage('Foto profil kembali ke ilustrasi default Wahyu Eka B.T.');
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const openAvatarSettings = () => {
+    setSettingsActiveTab('avatar');
+    setIsSettingsOpen(true);
+  };
+
+  const openBgSettings = () => {
+    setSettingsActiveTab('background');
+    setIsSettingsOpen(true);
+  };
+
   return (
     <main className="min-h-screen w-full bg-slate-200/80 flex flex-col items-center justify-start sm:py-6 sm:px-4">
       {/* Toast Notification */}
@@ -55,6 +215,8 @@ export default function App() {
           <span className="leading-snug">{toastMessage}</span>
         </div>
       )}
+
+
 
       {/* ============================================================== */}
       {/* MASTER DIGITAL BUSINESS CARD (PORTRAIT FORMAT) */}
@@ -69,29 +231,39 @@ export default function App() {
         <CurvedOrnaments />
 
         {/* ============================================================ */}
-        {/* LAYER 2: Background Watermark Permanen Green SM              */}
+        {/* LAYER 2: Background Image Hasil Upload Pengguna (Watermark)  */}
         {/* ============================================================ */}
-        <UserBackgroundLayer settings={PERMANENT_DEFAULT_CONFIG.background} />
+        <UserBackgroundLayer settings={bgSettings} />
 
         {/* ============================================================ */}
         {/* LAYER 3: Seluruh Konten Landing Page (DIKUNCI & TERBACA)    */}
         {/* ============================================================ */}
         <div className="relative z-10 flex flex-col items-center px-5 pt-6 pb-2 w-full">
           
-          {/* TOP SECTION: Header Logo GREEN SM Electric Taxi */}
+          {/* TOP SECTION: Logo GREEN SM & Electric Taxi */}
           <header className="w-full flex justify-center mb-3">
             <GreenSMLogo size="md" />
           </header>
 
-          {/* DRIVER PHOTO: Foto Resmi Wahyu Eka B.T. (Enlarged with Yellow Border) */}
+          {/* DRIVER PHOTO: PERBESAR FOTONYA (Enlarged with Yellow Border & Green SM Watermark) */}
           <div className="my-1 flex justify-center">
             <DriverAvatar
-              avatarSettings={PERMANENT_DEFAULT_CONFIG.avatar}
+              avatarSettings={avatarSettings}
             />
           </div>
 
-          {/* DRIVER NAME: Wahyu Eka B.T. */}
-          <div className="text-center w-full px-2 mt-2">
+          {/* DRIVER IDENTITY & TITLE */}
+          <div className="text-center w-full px-2 mt-2 flex flex-col items-center">
+            {/* KARTU NAMA DIGITAL TITLE HEADER */}
+            <div className="mb-1.5 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-gradient-to-r from-teal-500/10 via-emerald-500/10 to-teal-500/10 border border-[#00B5B8]/35 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FFC800] ring-2 ring-[#FFC800]/30 animate-pulse shrink-0"></span>
+              <span className="text-[11px] sm:text-[12px] font-black tracking-[0.18em] uppercase text-[#008A8D] font-sans">
+                KARTU NAMA DIGITAL
+              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FFC800] ring-2 ring-[#FFC800]/30 animate-pulse shrink-0"></span>
+            </div>
+
+            {/* DRIVER NAME: Wahyu Eka B.T. */}
             <h1 className="text-[26px] sm:text-[28px] font-black tracking-tight text-[#073B3D] leading-tight">
               Wahyu Eka B.T.
             </h1>
@@ -133,7 +305,7 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Sisi Kanan: Ikon Buka Link */}
+              {/* Sisi Kanan: Ikon Kotak */}
               <div
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 group-hover:bg-[#25D366] group-hover:text-white group-hover:border-[#25D366] flex items-center justify-center shrink-0 transition-colors shadow-2xs"
                 title="Buka WhatsApp"
@@ -143,7 +315,7 @@ export default function App() {
             </a>
           </div>
 
-          {/* TWO MAIN ACTION BUTTONS: SIMPAN KONTAK (VCARD) & VISIT MY WEBSITE */}
+          {/* TWO MAIN ACTION BUTTONS: SIMPAN KONTAK (PANGGILAN) & VISIT MY WEBSITE */}
           <div className="w-full flex flex-col gap-2.5 my-1">
             
             {/* BUTTON A: SIMPAN KONTAK (MENGUNDUH / MEMBAGIKAN FILE KONTAK .VCF KE HP) */}
@@ -164,7 +336,7 @@ export default function App() {
 
             {/* BUTTON B: VISIT MY WEBSITE */}
             <a
-              href="https://sbyevrent.vercel.app/"
+              href="https://smartjourney.id"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-2xl bg-white/95 hover:bg-teal-50/70 border-2 border-[#00B5B8] text-[#007F82] hover:text-[#006A6D] font-extrabold text-sm sm:text-[14px] shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
@@ -188,15 +360,36 @@ export default function App() {
         <div className="relative z-10 w-full mt-auto pt-1">
           <ElectricTaxiCar />
 
-          {/* Bottom Card Footer Branding */}
-          <footer className="w-full py-2.5 px-4 bg-gradient-to-t from-[#E6F8F6] to-transparent text-center select-none">
-            <p className="text-[10px] font-semibold text-[#007275]/80 tracking-wide uppercase">
+          {/* Bottom Card Footer Branding & Secret Trigger: 10-13x buka pengaturan, 14x kembali ke semula */}
+          <footer
+            onClick={handleFooterSecretClick}
+            className="w-full py-2.5 px-4 bg-gradient-to-t from-[#E6F8F6] to-transparent text-center select-none cursor-pointer group"
+            title="Green SM Taxi • Wahyu Eka BT • Surabaya"
+          >
+            <p className="text-[10px] font-semibold text-[#007275]/80 tracking-wide uppercase transition-colors group-hover:text-[#005D60]">
               Green SM Taxi • Wahyu Eka BT • Surabaya
             </p>
           </footer>
         </div>
 
       </section>
+
+      {/* Modal Pengaturan Tampilan (Background & Foto Profil) */}
+      <BackgroundSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={handleCloseSettings}
+        settings={bgSettings}
+        onUpdateSettings={handleUpdateBgSettings}
+        onReset={handleResetBgSettings}
+        avatarSettings={avatarSettings}
+        onUpdateAvatarSettings={handleUpdateAvatarSettings}
+        onResetAvatar={handleResetAvatarSettings}
+        initialTab={settingsActiveTab}
+        onOpenQr={handleOpenQrFromModal}
+      />
+
+      {/* Real Camera-Scannable QR Code Modal */}
+      <QrModal isOpen={isQrOpen} onClose={() => setIsQrOpen(false)} />
     </main>
   );
 }

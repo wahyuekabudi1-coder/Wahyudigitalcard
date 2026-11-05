@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0",
+  "appName": "Green SM Electric Taxi - Wahyu Eka B.T.",
+  "bgSettings": {
+    "imageUrl": "/assets/permanent-default-bg.jpg",
+    "opacity": 22,
+    "position": "center",
+    "size": "cover",
+    "scale": 100,
+    "repeat": false,
+    "overlayColor": "none",
+    "overlayOpacity": 0
+  },
+  "avatarSettings": {
+    "photoUrl": "/assets/driver-wahyu-default.jpg",
+    "zoom": 100,
+    "positionY": 50,
+    "positionX": 50
+  }
+}
