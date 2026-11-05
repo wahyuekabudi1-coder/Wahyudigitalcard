@@ -20,15 +20,20 @@ interface UserBackgroundLayerProps {
  * Menjamin parent section TIDAK diberi opacity sehingga konten tetap 100% jelas & terbaca.
  */
 export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({
-  settings = PERMANENT_DEFAULT_CONFIG.background,
+  settings,
 }) => {
-  const rawUrl = settings.imageUrl;
+  const activeSettings = settings || PERMANENT_DEFAULT_CONFIG.background;
+  const rawUrl = activeSettings?.imageUrl;
+
+  // Resolve to official permanent background and guard against legacy promo URLs
   const safeImageUrl =
     typeof rawUrl === 'string' &&
     rawUrl.trim() !== '' &&
     rawUrl !== 'null' &&
     rawUrl !== 'undefined' &&
-    !rawUrl.startsWith('blob:')
+    !rawUrl.startsWith('blob:') &&
+    !rawUrl.includes('permanent-default-bg') &&
+    !rawUrl.includes('IMG_20261104')
       ? rawUrl
       : PERMANENT_DEFAULT_CONFIG.background.imageUrl;
 
@@ -38,20 +43,22 @@ export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({
       10,
       Math.min(
         100,
-        typeof settings.opacity === 'number' && !isNaN(settings.opacity)
-          ? settings.opacity
+        typeof activeSettings?.opacity === 'number' && !isNaN(activeSettings.opacity)
+          ? activeSettings.opacity
           : PERMANENT_DEFAULT_CONFIG.background.opacity
       )
     ) / 100;
 
   const safePosition =
-    typeof settings.position === 'string' && settings.position.trim() !== ''
-      ? settings.position
-      : 'center';
+    typeof activeSettings?.position === 'string' && activeSettings.position.trim() !== ''
+      ? activeSettings.position
+      : PERMANENT_DEFAULT_CONFIG.background.position;
 
   // Calculate background-size style
   const backgroundSizeStyle =
-    settings.size === 'custom' ? `${settings.scale}%` : settings.size || 'cover';
+    activeSettings?.size === 'custom'
+      ? `${activeSettings.scale || PERMANENT_DEFAULT_CONFIG.background.scale}%`
+      : activeSettings?.size || PERMANENT_DEFAULT_CONFIG.background.size;
 
   return (
     <div
@@ -65,18 +72,18 @@ export const UserBackgroundLayer: React.FC<UserBackgroundLayerProps> = ({
           backgroundImage: `url("${safeImageUrl}")`,
           backgroundPosition: safePosition,
           backgroundSize: backgroundSizeStyle,
-          backgroundRepeat: settings.repeat ? 'repeat' : 'no-repeat',
+          backgroundRepeat: activeSettings?.repeat ? 'repeat' : 'no-repeat',
           opacity: safeOpacity,
         }}
       />
 
       {/* Layer 2B: Optional Color Overlay */}
-      {settings.overlayColor !== 'none' && settings.overlayOpacity > 0 && (
+      {activeSettings?.overlayColor && activeSettings.overlayColor !== 'none' && (activeSettings.overlayOpacity || 0) > 0 && (
         <div
           className="absolute inset-0 transition-opacity duration-150 ease-out"
           style={{
-            backgroundColor: settings.overlayColor,
-            opacity: settings.overlayOpacity / 100,
+            backgroundColor: activeSettings.overlayColor,
+            opacity: (activeSettings.overlayOpacity || 0) / 100,
           }}
         />
       )}

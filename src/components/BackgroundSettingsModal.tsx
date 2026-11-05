@@ -28,17 +28,19 @@ export interface BackgroundSettings {
   overlayOpacity: number; // 0 - 100
 }
 
-export const PERMANENT_DEFAULT_BG_IMAGE = '/assets/permanent-default-bg.jpg';
+import { PERMANENT_DEFAULT_CONFIG } from '../config/permanentSettings';
+
+export const PERMANENT_DEFAULT_BG_IMAGE = PERMANENT_DEFAULT_CONFIG.background.imageUrl;
 
 export const DEFAULT_BG_SETTINGS: BackgroundSettings = {
-  imageUrl: PERMANENT_DEFAULT_BG_IMAGE,
-  opacity: 22,
-  position: 'center',
-  size: 'cover',
-  scale: 100,
-  repeat: false,
-  overlayColor: 'none',
-  overlayOpacity: 0,
+  imageUrl: PERMANENT_DEFAULT_CONFIG.background.imageUrl,
+  opacity: PERMANENT_DEFAULT_CONFIG.background.opacity,
+  position: PERMANENT_DEFAULT_CONFIG.background.position,
+  size: PERMANENT_DEFAULT_CONFIG.background.size,
+  scale: PERMANENT_DEFAULT_CONFIG.background.scale,
+  repeat: PERMANENT_DEFAULT_CONFIG.background.repeat,
+  overlayColor: PERMANENT_DEFAULT_CONFIG.background.overlayColor,
+  overlayOpacity: PERMANENT_DEFAULT_CONFIG.background.overlayOpacity,
 };
 
 interface BackgroundSettingsModalProps {

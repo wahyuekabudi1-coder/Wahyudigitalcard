@@ -28,7 +28,7 @@ function persistDefaultsPlugin(): Plugin {
                 const matches = data.bgImageUrl.match(/^data:image\/([a-zA-Z+]+);base64,(.+)$/);
                 if (matches) {
                   const buffer = Buffer.from(matches[2], 'base64');
-                  fs.writeFileSync(path.join(publicAssetsDir, 'permanent-default-bg.jpg'), buffer);
+                  fs.writeFileSync(path.join(publicAssetsDir, 'driver-background.jpg'), buffer);
                 }
               }
 
@@ -37,6 +37,7 @@ function persistDefaultsPlugin(): Plugin {
                 const matches = data.avatarPhotoUrl.match(/^data:image\/([a-zA-Z+]+);base64,(.+)$/);
                 if (matches) {
                   const buffer = Buffer.from(matches[2], 'base64');
+                  fs.writeFileSync(path.join(publicAssetsDir, 'driver-profile.jpg'), buffer);
                   fs.writeFileSync(path.join(publicAssetsDir, 'driver-wahyu-default.jpg'), buffer);
                 }
               }
@@ -47,7 +48,7 @@ function persistDefaultsPlugin(): Plugin {
               if (data.bgSettings) {
                 currentConfig.bgSettings = {
                   ...data.bgSettings,
-                  imageUrl: '/assets/permanent-default-bg.jpg',
+                  imageUrl: '/assets/driver-background.jpg?v=2',
                 };
               }
               if (data.avatarSettings) {
