@@ -3,9 +3,10 @@ import {
   PERMANENT_DEFAULT_CONFIG,
   PermanentBackgroundConfig,
 } from '../config/permanentSettings';
+import type { BackgroundSettings } from './BackgroundSettingsModal';
 
 interface UserBackgroundLayerProps {
-  settings?: PermanentBackgroundConfig;
+  settings?: PermanentBackgroundConfig | BackgroundSettings;
 }
 
 /**
